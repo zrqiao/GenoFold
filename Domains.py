@@ -13,12 +13,25 @@ from scipy.sparse.linalg import expm, expm_multiply
 
 #Change following routines for other environments:
 global Temperature
-Temperature=37
+global k, k0
+Temperature = 37
+k = 1
+k0 = 1
 ##
 
 
 def similar(a, b):
     return SequenceMatcher(None, a, b).ratio()
+
+def rate(dG):
+    return k0*np.exp(-(k*dG))
+
+def get_domain(collection, sequence, structure, lbound, rbound):#Get another domain from collection or create a new one
+    key = (sequence, structure, lbound, rbound)
+    if key in collection.keys():
+        return collection[key]
+    else:
+        return domain(sequence, structure, lbound, rbound, collection)
 
 class domain(object):
     def __init__(self, sequence, structure, lbound, rbound, collection, reducible=True, population=0):
@@ -32,9 +45,9 @@ class domain(object):
         self.reducible = reducible
         self.G = None
         self.elements = set()
-        self.IFR = [] #Irreducible foldons representation
+        self.IFR = None #Irreducible foldons representation TODO: IFR is automatically generated when initiate foldons
         self.collection = collection #collection is a dictionary
-        collection[(self.sequence, self.structure, self.lbound, self.rbound)] = self
+        collection[(self.sequence, self.structure, self.lbound, self.rbound)] = self#Add to repository when created
 
     def __eq__(self, other):
         return self.structure == other.structure and self.lbound == other.lbound and self.rbound == other.rbound
@@ -109,18 +122,34 @@ class domain(object):
         loopstate = self.get_domain(self.sequence, ''.join(loopss), self.lbound, self.rbound)
         return loopstate
 
-    def rate_nonoverlap(self, other):#Forward rate constant i->j for non-overlap domains
+    def dissociate_energy(self):
         #NOTE: This version is a very primary estimation for unfolding-folding free energy that did not discriminate
         #  stem/ hairpin/ interior/ multi loops. This part is left for optimization.
-        G_loop1=self.dissociate_to_loop().calc_G()
-        G_loop2=other.dissociate_to_loop().calc_G()
-        G_empty=.0
-        dG_forward= G_loop1 - self.calc_G() + G_loop2 - G_empty
-        dG_backward = G_loop2 - other.calc_G() + G_loop1 - G_empty
-        return (np.exp(-(dG_forward)), np.exp(-(dG_backward)))
+        #if self.structure == '.':
+        #    return 0
+        #else:
+        G_loop = self.dissociate_to_loop().calc_G()
+        #G_empty=.0
+        #dG_forward= G_loop1 - self.calc_G() + G_loop2 - G_empty
+        #dG_backward = G_loop2 - other.calc_G() + G_loop1 - G_empty
+        return G_loop-self.calc_G()
 
-    def elongate(self, d_seq, d_ss, dl):
-        return self.get_domain(self.sequence+d_seq, self.structure+d_ss, self.lbound, self.rbound+dl)
+    def loop_formation_energy(self):
+        #NOTE: This version is a very primary estimation for unfolding-folding free energy that did not discriminate
+        #  stem/ hairpin/ interior/ multi loops. This part is left for optimization.
+        #if self.structure == '.':
+        #    return 0
+        G_empty = .0
+        #else:
+        G_loop = self.dissociate_to_loop().calc_G()
+        return G_loop-G_empty
+
+    def elongate(self, d_seq, d_ss, dl):#Primary structure have a IFR; elongation structure is a Irreducible Foldon
+        longerdomain= self.get_domain(self.sequence+d_seq, self.structure+d_ss, self.lbound, self.rbound+dl)
+        if not longerdomain.IFR: #update IFR
+            longerdomain.IFR = self.IFR
+            longerdomain.IFR.append(longerdomain.rbound)
+        return longerdomain
 
     def check_availability(self, other): #Forward rearrangement
         IFRa = set(self.IFR)
@@ -134,7 +163,7 @@ class domain(object):
         else:
             return False
 
-    def pathway_link(self, other):
+    def pathway_link(self, other, pathway_collection):
         trial = self.check_availability(other)
         if trial:
             sub_lbound, sub_rbound = trial
@@ -144,18 +173,34 @@ class domain(object):
             othersite = other.get_domain(other.sequence[sub_lbound:sub_rbound],
                                      other.structure[sub_lbound:sub_rbound],
                                      sub_lbound, sub_rbound)
-            nocontributionelements = mysite.get_elements() ^ othersite.get_elements()
-            mycontribution = mysite.get_elements() - nocontributionelements
-            othercontribution = othersite.get_elements() - nocontributionelements
             #TODO: rate calculation interface
+            try:            #if already exists
+                rate = pathway_collection.get_pathway(mysite, othersite).rate()  # TODO: implementation
+            except:
+                nocontributionelements = mysite.get_elements() ^ othersite.get_elements()
+                mycontributions = mysite.get_elements() - nocontributionelements
+                theircontributions = othersite.get_elements() - nocontributionelements
+                forwardenergy = sum(map(lambda x:x.dissociate_energy(), mycontributions)) +\
+                                sum(map(lambda x:x.loop_formation_energy(), theircontributions))
+                backwardenergy = sum(map(lambda x: x.dissociate_energy(), theircontributions)) + \
+                                sum(map(lambda x: x.loop_formation_energy(), mycontributions))
+                forwardrate = rate(forwardenergy)
+                backwardrate = rate(backwardenergy)
+                newelementpathway=pathway(mysite,othersite,pathway_collection, (forwardrate,backwardrate))
+            return pathway_collection.get_pathway(mysite, othersite).rate()
         #Add to collection
+
+    def pathway_rate(self, other, pathway_collection):#Input
+
+
+
 
 class foldon(domain):
     def __init__(self, adomain, foldon_collection):
         domain.__init__(self, adomain.sequence, adomain.structure, adomain.lbound, adomain.rbound, foldon_collection)
 
-class pathway(object):
-    def __init__(self, source, sink, collection, rate=0):
+class pathway(object):#Indices of a pathway should be two domain(for robustness, can be improved by using IFR for indices)
+    def __init__(self, source, sink, collection):
         self.source = source
         self.sink = sink
         self.rate = rate

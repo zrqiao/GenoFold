@@ -35,14 +35,14 @@ class DomainsCollection(object):
         self.collection = dict()
 
     def __contains__(self, adomain):
-        if (adomain.sequence, adomain.structure, adomain.l_bound, adomain.r_bound) in self.collection.keys():
+        if (adomain.sequence, adomain.structure, adomain.l_bound, adomain.r_bound) in self.collection:
             return True
         else:
             return False
 
     def get_domain(self, sequence, structure, l_bound, r_bound):#Get another domain from collection or create a new one
         key = (sequence, structure, l_bound, r_bound)
-        if key in self.collection.keys():
+        if key in self.collection:
             return self.collection[key]
         else:
             new_domain = Domain(sequence, structure, l_bound, r_bound, self)
@@ -65,7 +65,7 @@ class FoldonCollection(object):
         else:
             return False
 
-    def get_foldons(self, l_bound, r_bound):  # Get another domain from collection, cannot create new instances
+    def find_foldons(self, l_bound, r_bound):  # Get another domain from collection, cannot create new instances
         try:
             return self.collection[l_bound][r_bound]
         except IndexError:
@@ -74,7 +74,7 @@ class FoldonCollection(object):
 
     def new_foldon(self, sequence, l_bound, r_bound, domain_collection):#foldon_collection is a DomainCollection
         mfe = nupack_functions.nupack_mfe(sequence, Temperature)
-        new_foldon = domain_collection.get_domain(sequence, mfe, l_bound, r_bound)
+        new_foldon = domain_collection.find_domain(sequence, mfe, l_bound, r_bound)
         new_foldon.foldonize()
         if new_foldon not in self.collection[l_bound][r_bound]:
             self.add_foldon(new_foldon)
@@ -107,15 +107,18 @@ class Domain(object):
     def __repr__(self):
         return self.l_bound, self.r_bound, self.structure
 
-    def get_domain(self, sequence, structure, lbound, rbound):#Get another domain from collection or create a new one
+    def find_domain(self, sequence, structure, lbound, rbound):#Get another domain from collection or create a new one
         #key = (sequence, structure, lbound, rbound)
         #if key in self.collection.keys():
         #    return self.collection[key]
         #else:
-        return self.collection.get_domain(sequence, structure, lbound, rbound)
+        return self.collection.find_domain(sequence, structure, lbound, rbound)
 
     def get_structure(self):
         return self.structure
+
+    def get_IFR(self):
+        return self.IFR
 
     def foldonize(self):#If self is a foldon
         self.is_foldon = True
@@ -133,7 +136,7 @@ class Domain(object):
                     base = self.sequence[index]
                     if symb == '.':
                         if not unpaired:
-                            elements.append(self.get_domain(base, symb, self.l_bound + index, self.r_bound + index + 1))
+                            elements.append(self.find_domain(base, symb, self.l_bound + index, self.r_bound + index + 1))
                         else:
                             pass
                     elif symb == '(':
@@ -144,9 +147,9 @@ class Domain(object):
                             unpaired.pop()
                             if not unpaired:
                                 sub_r_bound = self.l_bound + index + 1
-                                new_element = self.get_domain(self.sequence[sub_l_bound:sub_r_bound],
+                                new_element = self.find_domain(self.sequence[sub_l_bound:sub_r_bound],
                                                        self.structure[sub_l_bound:sub_r_bound],
-                                                       sub_l_bound, sub_r_bound)
+                                                               sub_l_bound, sub_r_bound)
                                 new_element.reducible = False
                                 elements.append(new_element)
                         except IndexError: #If ')' appears alone
@@ -178,7 +181,7 @@ class Domain(object):
                 loop_ss = '('+'.'*(self.length-2)+')'
             else: #Is a '.'?
                 loop_ss = self.structure
-        loop_state = self.get_domain(self.sequence, ''.join(loop_ss), self.l_bound, self.r_bound)
+        loop_state = self.find_domain(self.sequence, ''.join(loop_ss), self.l_bound, self.r_bound)
         return loop_state
 
     def dissociate_energy(self):
@@ -203,13 +206,19 @@ class Domain(object):
         G_loop = self.dissociate_to_loop().calc_G()
         return G_loop-G_empty
 
-    def elongate(self, d_seq, d_ss, dl):#Primary structure have a IFR; elongation structure is a Irreducible foldon;
+    def elongate(self, additional_domain):#Primary structure have a IFR; elongation structure is a Irreducible foldon;
         # generate another valid domain from one
-        longer_domain= self.get_domain(self.sequence + d_seq, self.structure + d_ss, self.l_bound, self.r_bound + dl)
-        if not longer_domain.IFR: #update IFR
-            longer_domain.IFR = self.IFR
-            longer_domain.IFR.append(longer_domain.rbound)
-        return longer_domain
+        if self.r_bound != additional_domain.r_bound:
+            print('Error: illegal elongation')
+            return False
+        else:
+            longer_domain = self.find_domain(self.sequence + additional_domain.sequence,
+                                             self.structure + additional_domain.structure,
+                                             self.l_bound, additional_domain.r_bound)
+            if not longer_domain.IFR: #update IFR
+                longer_domain.IFR = self.IFR
+                longer_domain.IFR.append(longer_domain.rbound)
+            return longer_domain
 
     def check_availability(self, other): #Forward rearrangement
         IFRa = set(self.IFR)
@@ -233,12 +242,13 @@ class Domain(object):
 #        domain.__init__(self, adomain.sequence, adomain.structure, adomain.lbound, adomain.rbound, foldon_collection)
 #        self.isfoldon = True
 
-class Pathways(object):#Indices of a pathway should be two domain(for robustness, can be improved by using IFR for indices)
+
+class Pathways(object):     #  Indices of a pathway should be two domain(for robustness, can be improved by using IFR for indices)
     def __init__(self):
         self.collection = defaultdict(dict)
 
     def has_path(self, source, sink):
-        if sink in self.collection[source].keys():
+        if sink in self.collection[source]:
             return True
         else:
             return False
@@ -268,7 +278,7 @@ class Pathways(object):#Indices of a pathway should be two domain(for robustness
                 self.add(domain2, domain1, backward_rate)
                 return forward_rate, backward_rate
         sub_l_bound, sub_r_bound = trial
-        if sub_l_bound==domain1.lbound and sub_r_bound==domain2.rbound:#This is the minimum rearrangement site
+        if sub_l_bound == domain1.lbound and sub_r_bound == domain2.rbound:#This is the minimum rearrangement site
             my_site, other_site= source, sink
         else:
             my_site = source.get_domain(source.sequence[sub_l_bound:sub_r_bound],
@@ -301,7 +311,6 @@ class Pathways(object):#Indices of a pathway should be two domain(for robustness
         self.add(sink, source, backward_rate)
         return forward_rate, backward_rate
 
-pathway_collection = defaultdict(dict)
 
 class SpeciesPool(object):
     def __init__(self, pathways):
@@ -311,13 +320,16 @@ class SpeciesPool(object):
 
     def add_species(self, domain, population=0):
         if domain.IFR:
-            self.species[domain] = population
+            self.species[domain] += population  # NOTE: duplication means more
             self.size += 1
 
     def clear(self):
         self.species.clear()
         self.size = 0
         return self
+
+    def species_list(self):
+        return list(self.species.keys())
 
     def get_population(self, domain):
         return self.species[domain]
@@ -345,7 +357,6 @@ class SpeciesPool(object):
             self.update_population(species_list[i][0], population_array[i])
 
         return self
-
 
     def selection(self, size_limit):
         if self.size > size_limit:

@@ -8,6 +8,7 @@ import Domains
 from collections import defaultdict
 import nupack_functions
 import argparse, math, random, gzip, pickle, types
+from multiprocessing import Pool
 
 # Change following routines for other environments:
 L_init = 20  # Initiation unit
@@ -38,13 +39,36 @@ if __name__ == '__main__':
     current_length = L_init
 
     while sequence_length < current_length:
+
+        old_species_pool = active_species_pool
+        active_species_pool.clear()
+
         if current_length+dL > sequence_length:
             L_step = sequence_length-current_length
         else:
             L_step = dL
         current_length += L_step
-        # TODO: structure_generation(single strain, elongation segment) [to be called in pool.map()]
-        #Compute all IFR segments; link sequences; update IFRs
+
+        # Generate all new foldons
+        l_bounds = np.arange(0, current_length, dL)
+        multi_pool = Pool()
+        multi_pool.map(lambda l_bound: all_foldons.new_foldon(
+            full_sequence[l_bound:current_length], l_bound, current_length, all_domains), l_bounds)
+
+        old_species_list = old_species_pool.species_list()
+
+        # NOTE: population is inherited without updating its IFR!! No new domain instance should be created.
+
+        # NOTE: structure_generation(single strain, elongation segment) [to be called in pool.map()]
+        # Compute all IFR segments; link sequences; update IFRs
+        for old_species in old_species_list:    #  TODO: Need parallel
+            for terminal_foldon in all_foldons.find_foldons(old_species.r_bound, current_length):
+                active_species_pool.add_species(old_species.elongate(terminal_foldon))
+            for rearrange_point in reversed(old_species.get_IFR()):
+                for overlapping_foldon in all_foldons.find_foldons(rearrange_point, current_length):
+                    shortersegment = ... #TODO
+                    active_species_pool.add_species(old_species.elongate(overlapping_foldon))
+                active_species_pool.add_species()
 
         # TODO: active pool update
 
@@ -55,5 +79,7 @@ if __name__ == '__main__':
         # NOTE: compute_foldon(i,j)
 
         # TODO: pickle & outputs
+
+
 
 exit()

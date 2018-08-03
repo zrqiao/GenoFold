@@ -17,6 +17,9 @@ global k, k0
 Temperature = 37
 k = 1
 k0 = 1
+
+foldons = defaultdict(dict)
+domains = dict()
 ##
 
 
@@ -26,28 +29,46 @@ def similar(a, b):
 def rate(dG):
     return k0*np.exp(-(k*dG))
 
-def get_domain(collection, sequence, structure, lbound, rbound):#Get another domain from collection or create a new one
-    key = (sequence, structure, lbound, rbound)
-    if key in collection.keys():
-        return collection[key]
-    else:
-        return domain(sequence, structure, lbound, rbound, collection)
+class domains_collection():
+
+    def __init__(self):
+        self.collection = defaultdict(dict)
+
+    def get_domain(self, sequence, structure, lbound, rbound):#Get another domain from collection or create a new one
+        key = (sequence, structure, lbound, rbound)
+        if key in self.collection.keys():
+            return self.collection[key]
+        else:
+            return domain(sequence, structure, lbound, rbound, self.collection)
+
+    def add_domain(self, adomain):
+        self.collection[(adomain.sequence, adomain.structure, adomain.lbound, adomain.rbound)] = adomain  # Add to repository when created
+
+
+def get_foldon(sequence, lbound, rbound, domain_collection, foldon_collection):#foldon_collection[lbound][rbound]=object(foldon)
+    mfe = nupack_functions.nupack_mfe(sequence, Temperature)
+    newfoldon = domain_collection.get_domain(sequence, mfe, lbound, rbound)
+    newfoldon.foldonize()
+    if newfoldon not in foldon_collection[lbound].values():
+        foldon_collection[lbound][rbound] = newfoldon
+    return newfoldon
 
 class domain(object):
-    def __init__(self, sequence, structure, lbound, rbound, collection, reducible=True, population=0):
+    def __init__(self, sequence, structure, lbound, rbound, collection, population=0):
         # [ , ) rbound[i]==lbound[i+1](stopping base +1)
         self.sequence = sequence
         self.structure = structure
         self.lbound = lbound
         self.rbound = rbound
         self.length = rbound-lbound
-        self.population = population
-        self.reducible = reducible
+        self.reducible = True
         self.G = None
         self.elements = set()
-        self.IFR = None #Irreducible foldons representation TODO: IFR is automatically generated when initiate foldons
-        self.collection = collection #collection is a dictionary
-        collection[(self.sequence, self.structure, self.lbound, self.rbound)] = self#Add to repository when created
+        self.isfoldon = False
+        self.population = population
+        self.IFR = None #Irreducible foldons representation NOTE: IFR is automatically generated when initiate foldons
+        self.collection = collection #NOTE: collection is a domains_collection
+        self.collection.add_domain(self) #Add to repository when created
 
     def __eq__(self, other):
         return self.structure == other.structure and self.lbound == other.lbound and self.rbound == other.rbound
@@ -58,12 +79,26 @@ class domain(object):
     def __str__(self):
         return self.structure
 
+    def __repr__(self):
+        return self.lbound, self.rbound, self.structure
+
     def get_domain(self, sequence, structure, lbound, rbound):#Get another domain from collection or create a new one
-        key = (sequence, structure, lbound, rbound)
-        if key in self.collection.keys():
-            return self.collection[key]
-        else:
-            return domain(sequence, structure, lbound, rbound, self.collection)
+        #key = (sequence, structure, lbound, rbound)
+        #if key in self.collection.keys():
+        #    return self.collection[key]
+        #else:
+        return self.collection.get_domain(sequence, structure, lbound, rbound)
+
+    def get_structure(self):
+        return self.structure
+
+    def foldonize(self):#If self is a foldon
+        self.isfoldon = True
+        self.IFR = [self.lbound, self.rbound]
+        return True
+
+    def change_population(self,population):
+        self.population = population
 
     def get_elements(self): #find closed domains. NOTE: No peudo knots
         if not self.elements:
@@ -98,6 +133,8 @@ class domain(object):
                         print('Error: Invalid symbol')
                 if unpaired:
                     print('Error: Unfinished structure')
+            if len(elements)==1:
+                self.reducible = False
             self.elements = set(elements)
         return self.elements
 
@@ -163,7 +200,7 @@ class domain(object):
         else:
             return False
 
-    def pathway_link(self, other, pathway_collection):
+    def pathway_link(self, other, pathways):
         trial = self.check_availability(other)
         if trial:
             sub_lbound, sub_rbound = trial
@@ -173,10 +210,12 @@ class domain(object):
             othersite = other.get_domain(other.sequence[sub_lbound:sub_rbound],
                                      other.structure[sub_lbound:sub_rbound],
                                      sub_lbound, sub_rbound)
-            #TODO: rate calculation interface
-            try:            #if already exists
-                rate = pathway_collection.get_pathway(mysite, othersite).rate()  # TODO: implementation
-            except:
+            forwardrate = 0; backwardrate = 0
+            #NOTE: rate calculation interface
+            #if already exists
+            forwardrate = pathways.get_rate(mysite, othersite)  # TODO: implementation
+            backwardrate = pathways.get_rate(othersite, mysite)
+            if not forwardrate and backwardrate:
                 nocontributionelements = mysite.get_elements() ^ othersite.get_elements()
                 mycontributions = mysite.get_elements() - nocontributionelements
                 theircontributions = othersite.get_elements() - nocontributionelements
@@ -186,25 +225,36 @@ class domain(object):
                                 sum(map(lambda x: x.loop_formation_energy(), mycontributions))
                 forwardrate = rate(forwardenergy)
                 backwardrate = rate(backwardenergy)
-                newelementpathway=pathway(mysite,othersite,pathway_collection, (forwardrate,backwardrate))
-            return pathway_collection.get_pathway(mysite, othersite).rate()
+                #newforwardpathway = pathway(mysite,othersite, forwardrate)
+                #newbackwardpathway = pathway(othersite,mysite, backwardrate)
+                pathways.add(mysite, othersite, forwardrate)
+                pathways.add(othersite, mysite, backwardrate)
+            pathways.add(self, other, forwardrate)
+            pathways.add(other, self, backwardrate)
+
+            return forwardrate, backwardrate
         #Add to collection
 
-    def pathway_rate(self, other, pathway_collection):#Input
+    ###def pathway_rate(self, other, pathway_collection):#Input
 
+#class foldon(domain):
+#    def __init__(self, adomain, foldon_collection):
+#        domain.__init__(self, adomain.sequence, adomain.structure, adomain.lbound, adomain.rbound, foldon_collection)
+#        self.isfoldon = True
 
+class pathways(object):#Indices of a pathway should be two domain(for robustness, can be improved by using IFR for indices)
+    def __init__(self):
+        self.collection = defaultdict(defaultdict(np.float))
 
+    def get_rate(self, source, sink):
+        return self.collection[source][sink]
 
-class foldon(domain):
-    def __init__(self, adomain, foldon_collection):
-        domain.__init__(self, adomain.sequence, adomain.structure, adomain.lbound, adomain.rbound, foldon_collection)
+    def add(self, source, sink, rate):
+        self.collection[source][sink] = rate
 
-class pathway(object):#Indices of a pathway should be two domain(for robustness, can be improved by using IFR for indices)
-    def __init__(self, source, sink, collection):
-        self.source = source
-        self.sink = sink
-        self.rate = rate
-        self.collection = collection
-        collection[source][sink] = rate
+pathway_collection = defaultdict(dict)
 
-pathway_collection = defaultdict(defaultdict(pathway))
+class species(object):
+    def __init__(self, pathways):
+        self.domains = set()
+        self.pathways = pathways

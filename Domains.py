@@ -7,6 +7,7 @@ from multiprocessing import Pool
 import re
 from scipy.sparse import csc_matrix
 from scipy.sparse.linalg import expm, expm_multiply
+import copy
 
 #Change following routines for other environments:
 Temperature = 37
@@ -72,7 +73,7 @@ class FoldonCollection(object):
         new_foldon.foldonize()
         if new_foldon not in self.collection[l_bound, r_bound]:
             self.add_foldon(new_foldon)
-        print(new_foldon.get_IFR())
+        # print(new_foldon.get_IFR())
         return new_foldon
 
 class Domain(object):
@@ -91,7 +92,7 @@ class Domain(object):
         self.collection = collection  # NOTE: collection is a domains_collection
 
     def __eq__(self, other):
-        return self.structure == other.structure and self.l_bound == other.lbound and self.r_bound == other.rbound
+        return self.structure == other.structure and self.l_bound == other.l_bound and self.r_bound == other.r_bound
 
     def __hash__(self):
         return hash((self.sequence, self.structure, self.l_bound, self.r_bound))
@@ -100,14 +101,14 @@ class Domain(object):
         return self.structure
 
     def __repr__(self):
-        return self.structure
+        return '^'.join(map(str, self.IFR))  # all information is encoded by IFR
 
-    def get_domain(self, sequence, structure, lbound, rbound):#Get another domain from collection or create a new one
+    def get_domain(self, sequence, structure, l_bound, r_bound):#Get another domain from collection or create a new one
         #key = (sequence, structure, lbound, rbound)
         #if key in self.collection.keys():
         #    return self.collection[key]
         #else:
-        return self.collection.get_domain(sequence, structure, lbound, rbound)
+        return self.collection.get_domain(sequence, structure, l_bound, r_bound)
 
     def get_sequence(self):
         return self.sequence
@@ -120,7 +121,7 @@ class Domain(object):
 
     def foldonize(self):#If self is a foldon
         self.is_foldon = True
-        self.IFR = [self.l_bound, self.r_bound]
+        self.IFR = [self.l_bound, self.r_bound] #overwrite
         return True
 
     def get_elements(self): #find closed domains. NOTE: No peudo knots
@@ -206,17 +207,22 @@ class Domain(object):
 
     def elongate(self, additional_domain):#Primary structure have a IFR; elongation structure is a Irreducible foldon;
         # generate another valid domain from one
-        if self.r_bound != additional_domain.r_bound:
+        if self.r_bound != additional_domain.l_bound:
             print('Error: illegal elongation')
             return False
         else:
             longer_domain = self.get_domain(self.sequence + additional_domain.sequence,
                                             self.structure + additional_domain.structure,
                                             self.l_bound, additional_domain.r_bound)
-            if not longer_domain.IFR: #update IFR
-                longer_domain.IFR = self.IFR
-                longer_domain.IFR.append(longer_domain.rbound)
-            print(longer_domain)
+            #update IFR
+            if longer_domain.IFR:
+                if longer_domain.IFR[-2] > self.r_bound: 
+                    return longer_domain
+            else:
+                longer_domain.IFR = copy.deepcopy(self.IFR)
+                longer_domain.IFR.append(additional_domain.r_bound)
+            # print('segment after elongation: ')
+            # print(longer_domain.get_IFR())
             return longer_domain
 
     def check_availability(self, other): #Forward rearrangement
@@ -224,8 +230,8 @@ class Domain(object):
         IFRb = set(other.IFR)
         if IFRa == IFRb:
             return False
-        elif IFRa & IFRb == IFRb:
-            diff = IFRa ^ IFRb
+        elif IFRa >= IFRb:
+            diff = IFRa - IFRb
             for i in range(len(other.IFR)-1):
                 if max(diff) < other.IFR[i+1] and min(diff) > other.IFR[i]:
                     return other.IFR[i], other.IFR[i+1] #Exact indices of rearrangement site
@@ -262,12 +268,12 @@ class Pathways(object):     #  Indices of a pathway should be two domain(for rob
 
     def pathway_link(self, domain1, domain2):    #If no path exists, call this
         # NOTE: finding the minimum rearrangement site
-        trial_forward = domain1.check_availability(domain1)
+        trial_forward = domain1.check_availability(domain2)
         if trial_forward:
             trial = trial_forward
             source, sink = domain1, domain2
         else:
-            trial_backward = domain2.check_availability(domain2)
+            trial_backward = domain2.check_availability(domain1)
             if trial_backward:
                 trial = trial_backward
                 source, sink = domain2, domain1
@@ -277,7 +283,7 @@ class Pathways(object):     #  Indices of a pathway should be two domain(for rob
                 self.add(domain2, domain1, backward_rate)
                 return forward_rate, backward_rate
         sub_l_bound, sub_r_bound = trial
-        if sub_l_bound == domain1.lbound and sub_r_bound == domain2.rbound:#This is the minimum rearrangement site
+        if sub_l_bound == domain1.l_bound and sub_r_bound == domain2.r_bound:#This is the minimum rearrangement site
             my_site, other_site= source, sink
         else:
             my_site = source.get_domain(source.sequence[sub_l_bound:sub_r_bound],
@@ -293,7 +299,7 @@ class Pathways(object):     #  Indices of a pathway should be two domain(for rob
             backward_rate = self.get_rate(other_site, my_site)
         else:
             #Rate calculation
-            no_contribution_elements = my_site.get_elements() ^ other_site.get_elements()
+            no_contribution_elements = my_site.get_elements() | other_site.get_elements()
             my_contributions = my_site.get_elements() - no_contribution_elements
             their_contributions = other_site.get_elements() - no_contribution_elements
             forward_energy = sum(map(lambda x: x.dissociate_energy(), my_contributions)) + \
@@ -319,9 +325,9 @@ class SpeciesPool(object):
         self.timestamp = 0
 
     def add_species(self, domain, population=0):
-        if domain.IFR:
+        if domain.get_IFR():
+            if domain not in self.species: self.size += 1
             self.species[domain] += population  # NOTE: duplication means more
-            self.size += 1
 
     def clear(self):
         self.species = defaultdict(float)
@@ -339,7 +345,7 @@ class SpeciesPool(object):
         return self
 
     def evolution(self, pathways, time):
-        print(self.size)
+        # print(self.size)
         rate_matrix = np.zeros((self.size, self.size))
         species_list = list(self.species.items())
         population_array = np.zeros(self.size)
@@ -350,12 +356,13 @@ class SpeciesPool(object):
                 rate_matrix[i][j] = pathways.get_rate(species_list[i][0], species_list[j][0])
             rate_matrix[i][i] = -np.sum(rate_matrix[i])
 
-        print(list(population_array))
+        # print(list(population_array))
         # Master Equation
         population_array = population_array.dot(expm(time*rate_matrix))
         self.timestamp += time
-
-        print(list(population_array))
+	
+        print(rate_matrix)
+        print(population_array)
 
         # Remapping
         for i in range(self.size):
@@ -375,15 +382,20 @@ class SpeciesPool(object):
 
 def recombination(strand, current_length, all_foldons, all_domains, old_species_pool, active_species_pool):
     for terminal_foldon in all_foldons.find_foldons(strand.r_bound, current_length):
+        # print(terminal_foldon)
+        # print(terminal_foldon.get_IFR())
         active_species_pool.add_species(strand.elongate(terminal_foldon),
                                         population=old_species_pool.get_population(strand) /
                                         len(all_foldons.find_foldons(strand.r_bound, current_length)))
     for rearrange_point in reversed(strand.get_IFR()[:-1]):
         if rearrange_point == 0:  # Global rearrangement
-            active_species_pool.add_species(all_foldons.find_foldons(rearrange_point, current_length))
+            for overlapping_foldon in all_foldons.find_foldons(rearrange_point, current_length):
+                active_species_pool.add_species(overlapping_foldon)
         else:
             for overlapping_foldon in all_foldons.find_foldons(rearrange_point, current_length):
                 unrearranged_domain = all_domains.get_domain(strand.get_sequence()[0:rearrange_point],
                                                              strand.get_structure()[0:rearrange_point], 0,
                                                              rearrange_point)
                 active_species_pool.add_species(unrearranged_domain.elongate(overlapping_foldon))
+    print('active space: ')
+    print(active_species_pool.species_list())

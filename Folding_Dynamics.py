@@ -9,9 +9,9 @@ from multiprocessing import Pool
 import copy
 
 # Change following routines for other environments:
-L_init = 20  # Initiation unit
+L_init = 5  # Initiation unit
 dL = 5  # elongation unit (also means CG unit)
-dt = 1  # Folding time for each elongation step
+dt = 100  # Folding time for each elongation step
 population_size_limit = 25  # maximum type of strands in the pool
 MULTI_PROCESS = 32
 
@@ -51,6 +51,8 @@ if __name__ == '__main__':
     while sequence_length > current_length:
         step += 1
         log.write('Step: %3d \n'%step)
+        
+        old_species_list = copy.deepcopy(active_species_pool.species_list())
         old_species_pool = copy.deepcopy(active_species_pool)
         active_species_pool.clear()
 
@@ -63,20 +65,19 @@ if __name__ == '__main__':
         # Generate all new foldons
         l_bounds = np.arange(0, current_length, dL)
         # multi_pool = Pool(MULTI_PROCESS)
-        map(lambda l_bound: all_foldons.new_foldon(
-            full_sequence[l_bound:current_length], l_bound, current_length, all_domains), l_bounds)
+        for l_bound in l_bounds:
+            all_foldons.new_foldon(full_sequence[l_bound:current_length], l_bound, current_length, all_domains)
 
-        old_species_list = old_species_pool.species_list()
-        print(old_species_list)
+               # print(old_species_list)
 
         # NOTE: population is inherited without updating its IFR!! No new domain instance should be created.
 
         # NOTE: structure_generation(single strain, elongation segment) [to be called in pool.map()]
         # Compute all IFR segments; link sequences; update IFRs
-        map(
-            lambda strand: Domains.recombination(
+        for strand in old_species_list:
+            Domains.recombination(
                 strand, current_length, all_foldons,
-                all_domains, old_species_pool, active_species_pool), old_species_list)  # parallelization
+                all_domains, old_species_pool, active_species_pool)  # parallelization
 
         # NOTE: population dynamics (master equation)
 

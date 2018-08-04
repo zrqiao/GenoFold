@@ -71,6 +71,7 @@ class FoldonCollection(object):
         new_foldon.foldonize()
         if new_foldon not in self.collection[l_bound][r_bound]:
             self.add_foldon(new_foldon)
+        print(new_foldon.get_IFR())
         return new_foldon
 
 class Domain(object):
@@ -98,7 +99,7 @@ class Domain(object):
         return self.structure
 
     def __repr__(self):
-        return self.l_bound, self.r_bound, self.structure
+        return self.structure
 
     def get_domain(self, sequence, structure, lbound, rbound):#Get another domain from collection or create a new one
         #key = (sequence, structure, lbound, rbound)
@@ -310,7 +311,7 @@ class Pathways(object):     #  Indices of a pathway should be two domain(for rob
 
 class SpeciesPool(object):
     def __init__(self, pathways):
-        self.species = defaultdict(np.float)
+        self.species = defaultdict(float)
         self.pathways = pathways
         self.size = 0
         self.timestamp = 0
@@ -336,6 +337,7 @@ class SpeciesPool(object):
         return self
 
     def evolution(self, pathways, time):
+        print(self.size)
         rate_matrix = np.zeros((self.size, self.size))
         species_list = list(self.species.items())
         population_array = np.zeros(self.size)
@@ -345,10 +347,13 @@ class SpeciesPool(object):
             for j in range(self.size):
                 rate_matrix[i][j] = pathways.get_rate(species_list[i][0], species_list[j][0])
             rate_matrix[i][i] = -np.sum(rate_matrix[i])
-
+	
+        print(list(population_array))
         # Master Equation
         population_array = population_array.dot(expm(time*rate_matrix))
         self.timestamp += time
+
+        print(list(population_array))
 
         # Remapping
         for i in range(self.size):

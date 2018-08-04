@@ -36,6 +36,7 @@ if __name__ == '__main__':
     sequence_length = len(full_sequence)
     current_length = L_init
     step = 0
+    # print('Population size: '+str(active_species_pool.size))
 
     # Start IO
     checkpoint_pool = gzip.open(clargs.sequence + '_pool.p.gz', 'w')
@@ -66,6 +67,7 @@ if __name__ == '__main__':
             full_sequence[l_bound:current_length], l_bound, current_length, all_domains), l_bounds)
 
         old_species_list = old_species_pool.species_list()
+        print(old_species_list)
 
         # NOTE: population is inherited without updating its IFR!! No new domain instance should be created.
 
@@ -78,6 +80,7 @@ if __name__ == '__main__':
 
         # NOTE: population dynamics (master equation)
 
+        print('Population size: '+str(active_species_pool.size))
         active_species_pool.evolution(all_pathways, dt)
         active_species_pool.selection(population_size_limit)
 

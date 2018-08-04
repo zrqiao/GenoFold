@@ -28,12 +28,27 @@ def nupack_mfe(sequence, T):
     tmp = nupack_path + '/tmp/%d' % rint
     with open(tmp + '.in', 'w') as f:
         f.write("%s\n" % seq)
-    subprocess.call([nupack_path + '/mfe', '-T', str(T), tmp], env=nupack_env)
+    subprocess.call([nupack_path + '/mfe', '-T', str(T), tmp]) #, env=nupack_env) #Using system path env
     with open(tmp + '.mfe', 'r') as f:
         flag = False
         for line in f:
             if len(line) > 1 and all(c in '(.)' for c in line.strip()):
                 ss = line.strip()
+    os.remove(tmp + '.in')
+    os.remove(tmp + '.mfe')
+    return ss
+
+def nupack_mfe_test():
+    # Use NUPACK to calculate the minimum-free-energy secondary structure of a sequence
+    # NOTE: Returns a secondary structure in the (((.))) notation
+    tmp = nupack_path + '/tmp/test'
+    subprocess.call([nupack_path + '/mfe', '-T', str(37), tmp])
+    f = open(tmp + '.mfe', 'r')
+    flag = False
+    for line in f:
+        if len(line) > 1 and all(c in '(.)' for c in line.strip()):
+            ss = line.strip()
+    f.close()
     os.remove(tmp + '.in')
     os.remove(tmp + '.mfe')
     return ss

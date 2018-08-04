@@ -48,28 +48,29 @@ class DomainsCollection(object):
 
 class FoldonCollection(object):
     def __init__(self):
-        self.collection = defaultdict(lambda: defaultdict(set))
+        self.collection = defaultdict(set)
 
     def add_foldon(self, adomain):
         if adomain.is_foldon:
-            self.collection[adomain.l_bound][adomain.r_bound].add(adomain)  # Add to repository when created
+            self.collection[(adomain.l_bound, adomain.r_bound)].add(adomain)  # Add to repository when created
             # TODO: degenerate case
             return self
         else:
             return False
 
-    def find_foldons(self, l_bound, r_bound):  # Get possible foldon configurations from collection, cannot create new instances
+    def find_foldons(self, l_bound, r_bound):
+        # Get possible foldon configurations from collection, cannot create new instances
         try:
-            return self.collection[l_bound][r_bound]
+            return self.collection[(l_bound, r_bound)]
         except IndexError:
             print("Error: no such foldon")
             return False
 
-    def new_foldon(self, sequence, l_bound, r_bound, domain_collection):#foldon_collection is a DomainCollection
+    def new_foldon(self, sequence, l_bound, r_bound, domain_collection):  # foldon_collection is a DomainCollection
         mfe = nupack_functions.nupack_mfe(sequence, Temperature)
-        new_foldon = domain_collection.get_domain(sequence, mfe, l_bound, r_bound)  #	TODO: degeneracy
+        new_foldon = domain_collection.get_domain(sequence, mfe, l_bound, r_bound)  # TODO: degeneracy
         new_foldon.foldonize()
-        if new_foldon not in self.collection[l_bound][r_bound]:
+        if new_foldon not in self.collection[l_bound, r_bound]:
             self.add_foldon(new_foldon)
         print(new_foldon.get_IFR())
         return new_foldon
@@ -86,8 +87,8 @@ class Domain(object):
         self.G = None
         self.elements = set()
         self.is_foldon = False
-        self.IFR = None #Irreducible foldons representation NOTE: IFR is automatically generated when initiate foldons
-        self.collection = collection #NOTE: collection is a domains_collection
+        self.IFR = None  # Irreducible foldons representation NOTE: IFR is automatically generated when initiate foldons
+        self.collection = collection  # NOTE: collection is a domains_collection
 
     def __eq__(self, other):
         return self.structure == other.structure and self.l_bound == other.lbound and self.r_bound == other.rbound
@@ -215,6 +216,7 @@ class Domain(object):
             if not longer_domain.IFR: #update IFR
                 longer_domain.IFR = self.IFR
                 longer_domain.IFR.append(longer_domain.rbound)
+            print(longer_domain)
             return longer_domain
 
     def check_availability(self, other): #Forward rearrangement
@@ -322,7 +324,7 @@ class SpeciesPool(object):
             self.size += 1
 
     def clear(self):
-        self.species.clear()
+        self.species = defaultdict(float)
         self.size = 0
         return self
 
@@ -347,7 +349,7 @@ class SpeciesPool(object):
             for j in range(self.size):
                 rate_matrix[i][j] = pathways.get_rate(species_list[i][0], species_list[j][0])
             rate_matrix[i][i] = -np.sum(rate_matrix[i])
-	
+
         print(list(population_array))
         # Master Equation
         population_array = population_array.dot(expm(time*rate_matrix))

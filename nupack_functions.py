@@ -1,7 +1,7 @@
 import subprocess, random, os, sys
 
 # Modify the following lines according to your NUPACK installation:
-nupack_path = os.environ['HOME'] + '/nupack3.2.2/bin'
+nupack_path = os.environ['HOME'] + '/nupack3.2.2/build/bin'
 nupack_env = {'NUPACKHOME' : os.environ['HOME'] + '/nupack3.2.2'}
 
 def rna_seq(sequence):

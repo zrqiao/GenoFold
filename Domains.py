@@ -65,7 +65,7 @@ class FoldonCollection(object):
         else:
             return False
 
-    def find_foldons(self, l_bound, r_bound):  # Get another domain from collection, cannot create new instances
+    def find_foldons(self, l_bound, r_bound):  # Get possible foldon configurations from collection, cannot create new instances
         try:
             return self.collection[l_bound][r_bound]
         except IndexError:
@@ -74,7 +74,7 @@ class FoldonCollection(object):
 
     def new_foldon(self, sequence, l_bound, r_bound, domain_collection):#foldon_collection is a DomainCollection
         mfe = nupack_functions.nupack_mfe(sequence, Temperature)
-        new_foldon = domain_collection.find_domain(sequence, mfe, l_bound, r_bound)
+        new_foldon = domain_collection.find_domain(sequence, mfe, l_bound, r_bound)  #	TODO: degeneracy
         new_foldon.foldonize()
         if new_foldon not in self.collection[l_bound][r_bound]:
             self.add_foldon(new_foldon)
@@ -317,6 +317,7 @@ class SpeciesPool(object):
         self.species = defaultdict(np.float)
         self.pathways = pathways
         self.size = 0
+		self.timestamp = 0
 
     def add_species(self, domain, population=0):
         if domain.IFR:
@@ -351,6 +352,7 @@ class SpeciesPool(object):
 
         # Master Equation
         population_array = population_array.dot(expm(time*rate_matrix))
+		self.timestamp += time
 
         # Remapping
         for i in range(self.size):

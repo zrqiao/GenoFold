@@ -25,7 +25,7 @@ def nupack_mfe(sequence, T):
     # NOTE: Returns a secondary structure in the (((.))) notation
     seq = rna_seq(sequence)
     rint = int(random.random() * 1.e9)
-    tmp = './tmp/%d' % rint
+    tmp = nupack_path + '/tmp/%d' % rint
     with open(tmp + '.in', 'w') as f:
         f.write("%s\n" % seq)
     subprocess.call([nupack_path + '/mfe', '-T', str(T), tmp], env=nupack_env)

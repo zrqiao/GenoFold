@@ -22,10 +22,6 @@ if __name__ == '__main__':
     with open(clargs.sequence + '.in', 'r') as sequence_file:
         full_sequence = sequence_file.readline()
 
-    checkpoint_pool = open(clargs.sequence + '_pool.p.tgz', 'w')
-    structure_output = open(clargs.sequence + '.dat', 'w')
-    log = open(clargs.sequence + '.log', 'w')
-
     #   NOTE: Initiation [create active population]
     all_domains = Domains.DomainsCollection()
     all_foldons = Domains.FoldonCollection()
@@ -38,15 +34,20 @@ if __name__ == '__main__':
     active_species_pool.add_species(init_foldon, population=1.0)
     sequence_length = len(full_sequence)
     current_length = L_init
-    pickle.dump(active_species_pool, checkpoint_pool)
     step = 0
-    log.write('Step: %3d \n'%step)
-    structure_output.write('#Time %g\n'%(dt*step))
-    for domain in active_species_pool.species_list():
-        structure_output.write('%s    %g\n'%(domain, active_species_pool.get_population(domain)))
+    with gzip.open(clargs.sequence + '_pool.p.gz', 'w') as checkpoint_pool:
+        pickle.dump(active_species_pool, checkpoint_pool)
+    with open(clargs.sequence + '.dat', 'w') as structure_output:
+        structure_output.write("#Time %g\n" % (dt * step))
+        for domain in active_species_pool.species_list():
+            structure_output.write('%s    %g\n' % (domain, active_species_pool.get_population(domain)))
+    with open(clargs.sequence + '.log', 'w') as log:
+        log.write('Step: %3d \n' % step)
+
+
 
     while sequence_length < current_length:
-        step +=1
+        step += 1
         log.write('Step: %3d \n'%step)
         old_species_pool = copy.deepcopy(active_species_pool)
         active_species_pool.clear()
@@ -80,12 +81,21 @@ if __name__ == '__main__':
         active_species_pool.selection(population_size_limit)
 
         # pickle & outputs
-        pickle.dump(active_species_pool, checkpoint_pool)
-        structure_output.write('#Time %g\n'%(dt*step))
-        for domain in active_species_pool.species_list():
-            structure_output.write('%s    %g\n'%(domain, active_species_pool.get_population(domain)))
+        with gzip.open(clargs.sequence + '_pool.p.gz', 'a') as checkpoint_pool:
+            pickle.dump(active_species_pool, checkpoint_pool)
+        with open(clargs.sequence + '.dat', 'a') as structure_output:
+            structure_output.write("#Time %g\n" % (dt * step))
+            for domain in active_species_pool.species_list():
+                structure_output.write('%s    %g\n' % (domain, active_species_pool.get_population(domain)))
+        with open(clargs.sequence + '.log', 'a') as log:
+            log.write('Step: %3d \n' % step)
 
-    with open(clargs.sequence + '_domains.p.tgz', 'w') as checkpoint_domains:
+        # pickle.dump(active_species_pool, checkpoint_pool)
+        # structure_output.write('#Time %g\n'%(dt*step))
+        # for domain in active_species_pool.species_list():
+        #     structure_output.write('%s    %g\n'%(domain, active_species_pool.get_population(domain)))
+
+    with gzip.open(clargs.sequence + '_domains.p.gz', 'w') as checkpoint_domains:
         pickle.dump(all_domains, checkpoint_domains)
 
     checkpoint_pool.close()

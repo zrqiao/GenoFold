@@ -15,8 +15,6 @@ Temperature = 37
 k = 1
 k0 = 1
 
-foldons = defaultdict(dict)
-domains = dict()
 ##
 
 
@@ -52,7 +50,7 @@ class DomainsCollection(object):
 
 class FoldonCollection(object):
     def __init__(self):
-        self.collection = defaultdict(defaultdict(set))
+        self.collection = defaultdict(lambda: defaultdict(set))
 
     def add_foldon(self, adomain):
         if adomain.is_foldon:

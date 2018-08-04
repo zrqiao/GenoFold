@@ -44,9 +44,7 @@ if __name__ == '__main__':
     with open(clargs.sequence + '.log', 'w') as log:
         log.write('Step: %3d \n' % step)
 
-
-
-    while sequence_length < current_length:
+    while sequence_length > current_length:
         step += 1
         log.write('Step: %3d \n'%step)
         old_species_pool = copy.deepcopy(active_species_pool)

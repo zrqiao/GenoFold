@@ -41,9 +41,9 @@ if __name__ == '__main__':
     pickle.dump(active_species_pool, checkpoint_pool)
     step = 0
     log.write('Step: %3d \n'%step)
-    structure_output.write('#Time %g'%(dt*step))
+    structure_output.write('#Time %g\n'%(dt*step))
     for domain in active_species_pool.species_list():
-        structure_output.write('%s    %g'%(domain, active_species_pool.get_population(domain)))
+        structure_output.write('%s    %g\n'%(domain, active_species_pool.get_population(domain)))
 
     while sequence_length < current_length:
         step +=1
@@ -81,9 +81,9 @@ if __name__ == '__main__':
 
         # pickle & outputs
         pickle.dump(active_species_pool, checkpoint_pool)
-        structure_output.write('#Time %g'%(dt*step))
+        structure_output.write('#Time %g\n'%(dt*step))
         for domain in active_species_pool.species_list():
-            structure_output.write('%s    %g'%(domain, active_species_pool.get_population(domain)))
+            structure_output.write('%s    %g\n'%(domain, active_species_pool.get_population(domain)))
 
     with open(clargs.sequence + '_domains.p.tgz', 'w') as checkpoint_domains:
         pickle.dump(all_domains, checkpoint_domains)

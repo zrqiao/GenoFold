@@ -1,8 +1,8 @@
 import subprocess, random, os, sys
 
 # Modify the following lines according to your NUPACK installation:
-nupack_path = os.environ['HOME'] + '/.local/source/nupack3.0.6/bin'
-nupack_env = {'NUPACKHOME' : os.environ['HOME'] + '/.local/source/nupack3.0.6/'}
+nupack_path = os.environ['HOME'] + '/nupack3.2.2/bin'
+nupack_env = {'NUPACKHOME' : os.environ['HOME'] + '/nupack3.2.2'}
 
 def rna_seq(sequence):
     # Convert a DNA sequence to a RNA sequence

@@ -4,9 +4,6 @@ import numpy as np
 from collections import defaultdict
 import operator
 from multiprocessing import Pool
-import matplotlib.pyplot as plt
-from matplotlib import gridspec
-import matplotlib as mpl
 import re
 from scipy.sparse import csc_matrix
 from scipy.sparse.linalg import expm, expm_multiply
@@ -317,7 +314,7 @@ class SpeciesPool(object):
         self.species = defaultdict(np.float)
         self.pathways = pathways
         self.size = 0
-		self.timestamp = 0
+        self.timestamp = 0
 
     def add_species(self, domain, population=0):
         if domain.IFR:
@@ -352,7 +349,7 @@ class SpeciesPool(object):
 
         # Master Equation
         population_array = population_array.dot(expm(time*rate_matrix))
-		self.timestamp += time
+        self.timestamp += time
 
         # Remapping
         for i in range(self.size):
@@ -368,3 +365,19 @@ class SpeciesPool(object):
             for species in ordered_species:
                 self.add_species(species[0], population=species[1]/remaining_population)
         return self
+
+
+def recombination(strand, current_length, all_foldons, all_domains, old_species_pool, active_species_pool):
+    for terminal_foldon in all_foldons.find_foldons(strand.r_bound, current_length):
+        active_species_pool.add_species(strand.elongate(terminal_foldon),
+                                        population=old_species_pool.get_population(strand) /
+                                        len(all_foldons.find_foldons(strand.r_bound, current_length)))
+    for rearrange_point in reversed(strand.get_IFR()[:-1]):
+        if rearrange_point == 0:  # Global rearrangement
+            active_species_pool.add_species(all_foldons.find_foldons(rearrange_point, current_length))
+        else:
+            for overlapping_foldon in all_foldons.find_foldons(rearrange_point, current_length):
+                unrearranged_domain = all_domains.get_domain(strand.get_sequence()[0:rearrange_point],
+                                                             strand.get_structure()[0:rearrange_point], 0,
+                                                             rearrange_point)
+                active_species_pool.add_species(unrearranged_domain.elongate(overlapping_foldon))

@@ -61,8 +61,8 @@ if __name__ == '__main__':
 
         # Generate all new foldons
         l_bounds = np.arange(0, current_length, dL)
-        # multi_pool = Pool(MULTI_PROCESS)
-        map(lambda l_bound: all_foldons.new_foldon(
+        multi_pool = Pool(MULTI_PROCESS)
+        multi_pool.map(lambda l_bound: all_foldons.new_foldon(
             full_sequence[l_bound:current_length], l_bound, current_length, all_domains), l_bounds)
 
         old_species_list = old_species_pool.species_list()
@@ -71,7 +71,7 @@ if __name__ == '__main__':
 
         # NOTE: structure_generation(single strain, elongation segment) [to be called in pool.map()]
         # Compute all IFR segments; link sequences; update IFRs
-        map(
+        multi_pool.map(
             lambda strand: Domains.recombination(
                 strand, current_length, all_foldons,
                 all_domains, old_species_pool, active_species_pool), old_species_list)  # parallelization

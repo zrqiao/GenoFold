@@ -13,6 +13,7 @@ L_init = 20  # Initiation unit
 dL = 5  # elongation unit (also means CG unit)
 dt = 1  # Folding time for each elongation step
 population_size_limit = 25  # maximum type of strands in the pool
+MULTI_PROCESS = 32
 
 if __name__ == '__main__':
 
@@ -60,7 +61,7 @@ if __name__ == '__main__':
 
         # Generate all new foldons
         l_bounds = np.arange(0, current_length, dL)
-        multi_pool = Pool()
+        multi_pool = Pool(MULTI_PROCESS)
         multi_pool.map(lambda l_bound: all_foldons.new_foldon(
             full_sequence[l_bound:current_length], l_bound, current_length, all_domains), l_bounds)
 

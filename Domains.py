@@ -107,6 +107,9 @@ class Domain(object):
         #else:
         return self.collection.get_domain(sequence, structure, lbound, rbound)
 
+    def get_sequence(self):
+        return self.sequence
+
     def get_structure(self):
         return self.structure
 

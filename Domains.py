@@ -9,8 +9,6 @@ from scipy.sparse import csc_matrix
 from scipy.sparse.linalg import expm, expm_multiply
 
 #Change following routines for other environments:
-global Temperature
-global k, k0
 Temperature = 37
 k = 1
 k0 = 1
@@ -69,7 +67,7 @@ class FoldonCollection(object):
 
     def new_foldon(self, sequence, l_bound, r_bound, domain_collection):#foldon_collection is a DomainCollection
         mfe = nupack_functions.nupack_mfe(sequence, Temperature)
-        new_foldon = domain_collection.find_domain(sequence, mfe, l_bound, r_bound)  #	TODO: degeneracy
+        new_foldon = domain_collection.get_domain(sequence, mfe, l_bound, r_bound)  #	TODO: degeneracy
         new_foldon.foldonize()
         if new_foldon not in self.collection[l_bound][r_bound]:
             self.add_foldon(new_foldon)
@@ -102,12 +100,12 @@ class Domain(object):
     def __repr__(self):
         return self.l_bound, self.r_bound, self.structure
 
-    def find_domain(self, sequence, structure, lbound, rbound):#Get another domain from collection or create a new one
+    def get_domain(self, sequence, structure, lbound, rbound):#Get another domain from collection or create a new one
         #key = (sequence, structure, lbound, rbound)
         #if key in self.collection.keys():
         #    return self.collection[key]
         #else:
-        return self.collection.find_domain(sequence, structure, lbound, rbound)
+        return self.collection.get_domain(sequence, structure, lbound, rbound)
 
     def get_structure(self):
         return self.structure
@@ -131,7 +129,7 @@ class Domain(object):
                     base = self.sequence[index]
                     if symb == '.':
                         if not unpaired:
-                            elements.append(self.find_domain(base, symb, self.l_bound + index, self.r_bound + index + 1))
+                            elements.append(self.get_domain(base, symb, self.l_bound + index, self.r_bound + index + 1))
                         else:
                             pass
                     elif symb == '(':
@@ -142,9 +140,9 @@ class Domain(object):
                             unpaired.pop()
                             if not unpaired:
                                 sub_r_bound = self.l_bound + index + 1
-                                new_element = self.find_domain(self.sequence[sub_l_bound:sub_r_bound],
+                                new_element = self.get_domain(self.sequence[sub_l_bound:sub_r_bound],
                                                        self.structure[sub_l_bound:sub_r_bound],
-                                                               sub_l_bound, sub_r_bound)
+                                                              sub_l_bound, sub_r_bound)
                                 new_element.reducible = False
                                 elements.append(new_element)
                         except IndexError: #If ')' appears alone
@@ -176,7 +174,7 @@ class Domain(object):
                 loop_ss = '('+'.'*(self.length-2)+')'
             else: #Is a '.'?
                 loop_ss = self.structure
-        loop_state = self.find_domain(self.sequence, ''.join(loop_ss), self.l_bound, self.r_bound)
+        loop_state = self.get_domain(self.sequence, ''.join(loop_ss), self.l_bound, self.r_bound)
         return loop_state
 
     def dissociate_energy(self):
@@ -207,9 +205,9 @@ class Domain(object):
             print('Error: illegal elongation')
             return False
         else:
-            longer_domain = self.find_domain(self.sequence + additional_domain.sequence,
-                                             self.structure + additional_domain.structure,
-                                             self.l_bound, additional_domain.r_bound)
+            longer_domain = self.get_domain(self.sequence + additional_domain.sequence,
+                                            self.structure + additional_domain.structure,
+                                            self.l_bound, additional_domain.r_bound)
             if not longer_domain.IFR: #update IFR
                 longer_domain.IFR = self.IFR
                 longer_domain.IFR.append(longer_domain.rbound)

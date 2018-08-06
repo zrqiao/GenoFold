@@ -90,7 +90,7 @@ class Domain(object):
         self.G = None
         self.elements = set()
         self.is_foldon = False
-        self.IFR = None  # Irreducible foldons representation NOTE: IFR is automatically generated when initiate foldons
+        self.IFR = np.array([])  # Irreducible foldons representation NOTE: IFR is automatically generated when initiate foldons
         self.collection = collection  # NOTE: collection is a domains_collection
 
     def __eq__(self, other):
@@ -224,7 +224,7 @@ class Domain(object):
                                             self.structure + additional_domain.structure,
                                             self.l_bound, additional_domain.r_bound)
             #update IFR
-            if np.any(longer_domain.IFR):
+            if longer_domain.IFR.size:
                 if longer_domain.IFR[-2] <= self.r_bound:  # Is a better IFR
                     return longer_domain
             else:
@@ -341,7 +341,7 @@ class SpeciesPool(object):
         self.timestamp = 0
 
     def add_species(self, domain, population=0.):
-        if np.any(domain.get_IFR()):
+        if domain.get_IFR().size:
             if domain not in self.species : self.size += 1
             self.species[domain] += population  # NOTE: duplication means more
 

@@ -406,20 +406,20 @@ class SpeciesPool(object):
 
 
 def recombination(strand, current_length, all_foldons, all_domains, old_species_pool, active_species_pool):
-    for terminal_foldon in all_foldons.find_foldons(strand.r_bound, current_length):
-        # print(terminal_foldon)
-        # print(terminal_foldon.get_IFR())
-        active_species_pool.add_species(strand.elongate(terminal_foldon),
-                                        population=old_species_pool.get_population(strand) /
-                                        len(all_foldons.find_foldons(strand.r_bound, current_length)))
-    for rearrange_point in reversed(strand.get_IFR()[:-1]):
+    for rearrange_point in strand.get_IFR():
         if rearrange_point == 0:  # Global rearrangement
             for overlapping_foldon in all_foldons.find_foldons(rearrange_point, current_length):
                 active_species_pool.add_species(overlapping_foldon)
+        elif rearrange_point == strand.r_bound:
+            for terminal_foldon in all_foldons.find_foldons(strand.r_bound, current_length):
+                # print(terminal_foldon)
+                # print(terminal_foldon.get_IFR())
+                active_species_pool.add_species(strand.elongate(terminal_foldon),
+                                                population=old_species_pool.get_population(strand) /
+                                                len(all_foldons.find_foldons(strand.r_bound, current_length)))
         else:
             for overlapping_foldon in all_foldons.find_foldons(rearrange_point, current_length):
                 unrearranged_domain = all_domains.get_domain(strand.get_sequence()[0:rearrange_point],
                                                              strand.get_structure()[0:rearrange_point], 0,
                                                              rearrange_point)
                 active_species_pool.add_species(unrearranged_domain.elongate(overlapping_foldon))
-

@@ -139,7 +139,7 @@ class Domain(object):
                         if not unpaired:
                             new_element = self.get_domain(base, symb, self.l_bound + index, self.l_bound + index + 1)
                             new_element.reducible = False
-                            new_element.elements = set(new_element)
+                            new_element.elements = set((new_element))
                             elements.append(new_element)
                         else:
                             pass
@@ -156,7 +156,7 @@ class Domain(object):
                                                        self.structure[sub_l_bound-self.l_bound:sub_r_bound-self.l_bound],
                                                               sub_l_bound, sub_r_bound)
                                 new_element.reducible = False
-                                new_element.elements = set(new_element)
+                                new_element.elements = set((new_element))
                                 elements.append(new_element)
                         except IndexError:  # If ')' appears alone
                             print('Error: Invalid secondary structure')

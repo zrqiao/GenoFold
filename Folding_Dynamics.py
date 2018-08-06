@@ -22,7 +22,7 @@ if __name__ == '__main__':
     parser.add_argument('--k', type=np.float, default=1., \
                         help="pre exponential factor")
     clargs = parser.parse_args()
-    with open(clargs.sequence + '_k' + '%e' % clargs.k + '.in', 'r') as sequence_file:
+    with open(clargs.sequence + '.in', 'r') as sequence_file:
         full_sequence = sequence_file.readline().rstrip('\n')
 
     #   NOTE: Initiation [create active population]

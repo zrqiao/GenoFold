@@ -341,7 +341,7 @@ class SpeciesPool(object):
         self.timestamp = 0
 
     def add_species(self, domain, population=0.):
-        if domain.get_IFR():
+        if np.any(domain.get_IFR()):
             if domain not in self.species : self.size += 1
             self.species[domain] += population  # NOTE: duplication means more
 

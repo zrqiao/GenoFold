@@ -11,8 +11,8 @@ import copy
 
 #Change following routines for other environments:
 Temperature = 37
-k = 1
-k0 = 0.1
+k0 = 1
+k = 1/(8.31441 * (273.15+Temperature))
 
 ##
 

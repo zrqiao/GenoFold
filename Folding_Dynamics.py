@@ -9,10 +9,10 @@ from multiprocessing import Pool
 import copy
 
 # Change following routines for other environments:
-L_init = 5  # Initiation unit
-dL = 5  # elongation unit (also means CG unit)
-dt = 100  # Folding time for each elongation step
-population_size_limit = 25  # maximum type of strands in the pool
+L_init = 50  # Initiation unit
+dL = 25  # elongation unit (also means CG unit)
+dt = 0.1 * dL  # Folding time for each elongation step (0.1 s/nt)
+population_size_limit = 10  # maximum type of strands in the pool
 MULTI_PROCESS = 32
 
 if __name__ == '__main__':
@@ -21,7 +21,7 @@ if __name__ == '__main__':
     parser.add_argument('sequence', type=str, help="RNA sequence (one line)")
     clargs = parser.parse_args()
     with open(clargs.sequence + '.in', 'r') as sequence_file:
-        full_sequence = sequence_file.readline()
+        full_sequence = sequence_file.readline().rstrip('\n')
 
     #   NOTE: Initiation [create active population]
     all_domains = Domains.DomainsCollection()
@@ -52,7 +52,6 @@ if __name__ == '__main__':
         step += 1
         # print('Step: %3d \n'%step)
         log.write('Step: %3d \n'%step)
-        log.write('Current length: %d \n'%current_length)
         old_species_pool = copy.deepcopy(active_species_pool)
         old_species_list = old_species_pool.species_list()
         active_species_pool.clear()
@@ -63,7 +62,8 @@ if __name__ == '__main__':
         else:
             L_step = dL
         current_length += L_step
-
+        log.write('Current length: %d \n'%current_length)
+ 
         # Generate all new foldons
         l_bounds = np.arange(0, current_length, dL)
         # multi_pool = Pool(MULTI_PROCESS)

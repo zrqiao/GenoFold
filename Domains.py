@@ -12,7 +12,7 @@ import copy
 #Change following routines for other environments:
 Temperature = 37
 k0 = 1
-k = 1/(8.31441 * (273.15+Temperature))
+# k = 1/(8.31441 * (273.15+Temperature))
 
 ##
 
@@ -20,8 +20,9 @@ k = 1/(8.31441 * (273.15+Temperature))
 def similar(a, b):
     return SequenceMatcher(None, a, b).ratio()
 
-def rate(dG):
-    return k0*np.exp(-(k*dG))
+
+def rate(dG, k):
+    return k*np.exp(-dG)
 
 
 class DomainsCollection(object):
@@ -75,6 +76,7 @@ class FoldonCollection(object):
             self.add_foldon(new_foldon)
         # print(new_foldon.get_IFR())
         return new_foldon
+
 
 class Domain(object):
     def __init__(self, sequence, structure, l_bound, r_bound, collection):
@@ -226,7 +228,7 @@ class Domain(object):
                 if longer_domain.IFR[-2] > self.r_bound: 
                     return longer_domain
             else:
-                longer_domain.IFR = copy.deepcopy(self.IFR)
+                longer_domain.IFR = [index for index in self.IFR]  # Direct deepcopy can be very slow
                 longer_domain.IFR.append(additional_domain.r_bound)
             # print('segment after elongation: ')
             # print(longer_domain.get_IFR())
@@ -256,8 +258,9 @@ class Domain(object):
 
 
 class Pathways(object):     #  Indices of a pathway should be two domain(for robustness, can be improved by using IFR for indices)
-    def __init__(self):
+    def __init__(self, k):  # Need pre-exponential factor
         self.collection = defaultdict(dict)
+        self.k = k
 
     def has_path(self, source, sink):
         if sink in self.collection[source]:
@@ -267,13 +270,13 @@ class Pathways(object):     #  Indices of a pathway should be two domain(for rob
 
     def get_rate(self, source, sink):
         if not self.has_path(source, sink):
-            self.pathway_link(source, sink)
+            self.pathway_link(source, sink, self.k)
         return self.collection[source][sink]
 
     def add(self, source, sink, rate):
         self.collection[source][sink] = rate
 
-    def pathway_link(self, domain1, domain2):    #If no path exists, call this
+    def pathway_link(self, domain1, domain2, k):    #If no path exists, call this
         # NOTE: finding the minimum rearrangement site
         trial_forward = domain1.check_availability(domain2)
         if trial_forward:
@@ -305,7 +308,7 @@ class Pathways(object):     #  Indices of a pathway should be two domain(for rob
             forward_rate = self.get_rate(my_site, other_site)
             backward_rate = self.get_rate(other_site, my_site)
         else:
-            #Rate calculation
+            # Rate calculation
             no_contribution_elements = my_site.get_elements() & other_site.get_elements()
             my_contributions = my_site.get_elements() - no_contribution_elements
             # print('mysite: ')
@@ -320,8 +323,8 @@ class Pathways(object):     #  Indices of a pathway should be two domain(for rob
                             sum([x.loop_formation_energy() for x in their_contributions])
             backward_energy = sum([x.dissociate_energy() for x in their_contributions]) + \
                              sum([x.loop_formation_energy() for x in my_contributions])
-            forward_rate = rate(forward_energy)
-            backward_rate = rate(backward_energy)
+            forward_rate = rate(forward_energy, k)
+            backward_rate = rate(backward_energy, k)
             # newforwardpathway = pathway(my_site,other_site, forward_rate)
             # newbackwardpathway = pathway(other_site,my_site, backward_rate)
             self.add(my_site, other_site, forward_rate)
@@ -338,7 +341,7 @@ class SpeciesPool(object):
         self.size = 0
         self.timestamp = 0
 
-    def add_species(self, domain, population=0):
+    def add_species(self, domain, population=0.):
         if domain.get_IFR():
             if domain not in self.species: self.size += 1
             self.species[domain] += population  # NOTE: duplication means more
@@ -355,6 +358,7 @@ class SpeciesPool(object):
         for myspecies in self.species:
             newself.add_species(myspecies, population=self.get_population(myspecies))
         return newself
+
     def species_list(self):
         return list(self.species.keys())
 
@@ -381,7 +385,7 @@ class SpeciesPool(object):
         # Master Equation
         population_array = population_array.dot(expm(time*rate_matrix))
         self.timestamp += time
-	
+
         # print(rate_matrix)
         # print(population_array)
 

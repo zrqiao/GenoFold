@@ -62,5 +62,5 @@ def nupack_ss_free_energy(sequence, ss, T):
                           stderr=subprocess.PIPE) as proc:
         nupack_input = bytes("%s\n%s\n" % (seq, ss), 'ascii')
         nupack_output, nupack_err = proc.communicate(nupack_input)
-        dG = float(nupack_output.decode('ascii').split('\n')[-2])
+        dG = float(nupack_output.decode('ascii').split('\n')[-2])  # different output for 3.2.2
     return dG

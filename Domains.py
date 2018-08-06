@@ -12,7 +12,7 @@ import copy
 #Change following routines for other environments:
 Temperature = 37
 k = 1
-k0 = 1
+k0 = 0.1
 
 ##
 
@@ -53,7 +53,7 @@ class FoldonCollection(object):
 
     def add_foldon(self, adomain):
         if adomain.is_foldon:
-            self.collection[(adomain.l_bound, adomain.r_bound)].add(adomain)  # Add to repository when created
+            self.collection[adomain.l_bound, adomain.r_bound].add(adomain)  # Add to repository when created
             # TODO: degenerate case
             return self
         else:
@@ -62,7 +62,7 @@ class FoldonCollection(object):
     def find_foldons(self, l_bound, r_bound):
         # Get possible foldon configurations from collection, cannot create new instances
         try:
-            return self.collection[(l_bound, r_bound)]
+            return self.collection[l_bound, r_bound]
         except IndexError:
             print("Error: no such foldon")
             return False
@@ -135,21 +135,26 @@ class Domain(object):
                     base = self.sequence[index]
                     if symb == '.':
                         if not unpaired:
-                            elements.append(self.get_domain(base, symb, self.l_bound + index, self.r_bound + index + 1))
+                            new_element = self.get_domain(base, symb, self.l_bound + index, self.l_bound + index + 1)
+                            new_element.reducible = False
+                            new_element.elements = set([new_element])
+                            elements.append(new_element)
                         else:
                             pass
                     elif symb == '(':
-                        sub_l_bound= self.l_bound + index
+                        if not unpaired:
+                            sub_l_bound= self.l_bound + index
                         unpaired.append(symb)
                     elif symb == ')':
                         try:
                             unpaired.pop()
                             if not unpaired:
                                 sub_r_bound = self.l_bound + index + 1
-                                new_element = self.get_domain(self.sequence[sub_l_bound:sub_r_bound],
-                                                       self.structure[sub_l_bound:sub_r_bound],
+                                new_element = self.get_domain(self.sequence[sub_l_bound-self.l_bound:sub_r_bound-self.l_bound],
+                                                       self.structure[sub_l_bound-self.l_bound:sub_r_bound-self.l_bound],
                                                               sub_l_bound, sub_r_bound)
                                 new_element.reducible = False
+                                new_element.elements = set([new_element])
                                 elements.append(new_element)
                         except IndexError: #If ')' appears alone
                             print('Error: Invalid secondary structure')
@@ -159,12 +164,14 @@ class Domain(object):
                     print('Error: Unfinished structure')
             if len(elements)==1:
                 self.reducible = False
+            # print([e.structure for e in elements])
             self.elements = set(elements)
         return self.elements
 
     def get_G(self):#NOTE: G is not initialized, has to be called explicitly before k calculation
         if not self.G:
             self.G = nupack_functions.nupack_ss_free_energy(sequence=self.sequence, ss=self.structure, T=Temperature)
+        # print(self.G)
         return self.G
 
     def dissociate_to_loop(self):#Input is an element
@@ -189,7 +196,7 @@ class Domain(object):
         #if self.structure == '.':
         #    return 0
         #else:
-        G_loop = self.dissociate_to_loop().calc_G()
+        G_loop = self.dissociate_to_loop().get_G()
         #G_empty=.0
         #dG_forward= G_loop1 - self.calc_G() + G_loop2 - G_empty
         #dG_backward = G_loop2 - other.calc_G() + G_loop1 - G_empty
@@ -202,7 +209,7 @@ class Domain(object):
         #    return 0
         G_empty = .0
         #else:
-        G_loop = self.dissociate_to_loop().calc_G()
+        G_loop = self.dissociate_to_loop().get_G()
         return G_loop-G_empty
 
     def elongate(self, additional_domain):#Primary structure have a IFR; elongation structure is a Irreducible foldon;
@@ -286,11 +293,11 @@ class Pathways(object):     #  Indices of a pathway should be two domain(for rob
         if sub_l_bound == domain1.l_bound and sub_r_bound == domain2.r_bound:#This is the minimum rearrangement site
             my_site, other_site= source, sink
         else:
-            my_site = source.get_domain(source.sequence[sub_l_bound:sub_r_bound],
-                                                       source.structure[sub_l_bound:sub_r_bound],
+            my_site = source.get_domain(source.sequence[sub_l_bound-source.l_bound:sub_r_bound-source.l_bound],
+                                                       source.structure[sub_l_bound-source.l_bound:sub_r_bound-source.l_bound],
                                                        sub_l_bound, sub_r_bound)
-            other_site = sink.get_domain(sink.sequence[sub_l_bound:sub_r_bound],
-                                     sink.structure[sub_l_bound:sub_r_bound],
+            other_site = sink.get_domain(sink.sequence[sub_l_bound-sink.l_bound:sub_r_bound-sink.l_bound],
+                                                       sink.structure[sub_l_bound-sink.l_bound:sub_r_bound-sink.l_bound],
                                      sub_l_bound, sub_r_bound)
         # NOTE: rate calculation interface
         # if already exists
@@ -299,13 +306,20 @@ class Pathways(object):     #  Indices of a pathway should be two domain(for rob
             backward_rate = self.get_rate(other_site, my_site)
         else:
             #Rate calculation
-            no_contribution_elements = my_site.get_elements() | other_site.get_elements()
+            no_contribution_elements = my_site.get_elements() & other_site.get_elements()
             my_contributions = my_site.get_elements() - no_contribution_elements
+            # print('mysite: ')
+            # print(sorted([[e.structure, e.l_bound, e.r_bound] for e in my_contributions],key=operator.itemgetter(2)))
+
             their_contributions = other_site.get_elements() - no_contribution_elements
-            forward_energy = sum(map(lambda x: x.dissociate_energy(), my_contributions)) + \
-                            sum(map(lambda x: x.loop_formation_energy(), their_contributions))
-            backward_energy = sum(map(lambda x: x.dissociate_energy(), their_contributions)) + \
-                             sum(map(lambda x: x.loop_formation_energy(), my_contributions))
+            # print('othersite: ')
+            # print(sorted([[e.structure, e.l_bound, e.r_bound] for e in their_contributions],key=operator.itemgetter(2)))
+
+            # print([[e.structure, e.l_bound, e.r_bound] for e in other_site.get_elements()])
+            forward_energy = sum([x.dissociate_energy() for x in my_contributions]) + \
+                            sum([x.loop_formation_energy() for x in their_contributions])
+            backward_energy = sum([x.dissociate_energy() for x in their_contributions]) + \
+                             sum([x.loop_formation_energy() for x in my_contributions])
             forward_rate = rate(forward_energy)
             backward_rate = rate(backward_energy)
             # newforwardpathway = pathway(my_site,other_site, forward_rate)
@@ -334,6 +348,13 @@ class SpeciesPool(object):
         self.size = 0
         return self
 
+    def __deepcopy__(self, memo):
+        memo[id(self)] = newself = self.__class__(self.pathways)  # NOTE: pathway collection is shallow copied!
+        newself.size = copy.deepcopy(self.size, memo)
+        newself.timestamp = copy.deepcopy(self.timestamp, memo)
+        for myspecies in self.species:
+            newself.add_species(myspecies, population=self.get_population(myspecies))
+        return newself
     def species_list(self):
         return list(self.species.keys())
 
@@ -361,8 +382,8 @@ class SpeciesPool(object):
         population_array = population_array.dot(expm(time*rate_matrix))
         self.timestamp += time
 	
-        print(rate_matrix)
-        print(population_array)
+        # print(rate_matrix)
+        # print(population_array)
 
         # Remapping
         for i in range(self.size):
@@ -373,7 +394,8 @@ class SpeciesPool(object):
     def selection(self, size_limit):
         if self.size > size_limit:
             ordered_species = list(sorted(self.species.items(), key=operator.itemgetter(1), reverse=True))[:size_limit]
-            remaining_population = sum(list(zip(ordered_species))[1])
+            # print(ordered_species)
+            remaining_population = sum([a[1] for a in ordered_species])
             self.clear()
             for species in ordered_species:
                 self.add_species(species[0], population=species[1]/remaining_population)
@@ -397,5 +419,4 @@ def recombination(strand, current_length, all_foldons, all_domains, old_species_
                                                              strand.get_structure()[0:rearrange_point], 0,
                                                              rearrange_point)
                 active_species_pool.add_species(unrearranged_domain.elongate(overlapping_foldon))
-    print('active space: ')
-    print(active_species_pool.species_list())
+

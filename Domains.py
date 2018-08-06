@@ -224,7 +224,7 @@ class Domain(object):
                                             self.structure + additional_domain.structure,
                                             self.l_bound, additional_domain.r_bound)
             #update IFR
-            if longer_domain.IFR:
+            if np.any(longer_domain.IFR):
                 if longer_domain.IFR[-2] > self.r_bound: 
                     return longer_domain
             else:

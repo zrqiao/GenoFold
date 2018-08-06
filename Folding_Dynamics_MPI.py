@@ -23,7 +23,7 @@ if __name__ == '__main__':
     parser.add_argument('--k', type=np.float, default=1., \
                         help="pre exponential factor")
     clargs = parser.parse_args()
-    with open(clargs.sequence + '_k' + str(clargs.k) + '.in', 'r') as sequence_file:
+    with open(clargs.sequence + '.in', 'r') as sequence_file:
         full_sequence = sequence_file.readline().rstrip('\n')
 
     #   NOTE: Initiation [create active population]
@@ -42,13 +42,13 @@ if __name__ == '__main__':
     # print('Population size: '+str(active_species_pool.size))
 
     # Start IO
-    checkpoint_pool = gzip.open(clargs.sequence + '_k' + str(clargs.k) + '_pool.p.gz', 'w')
+    checkpoint_pool = gzip.open(clargs.sequence + '_k' + '%e' % clargs.k + '_pool.p.gz', 'w')
     pickle.dump(active_species_pool, checkpoint_pool)
-    structure_output = open(clargs.sequence + '_k' + str(clargs.k) + '.dat', 'w+')
+    structure_output = open(clargs.sequence + '_k' + '%e' % clargs.k + '.dat', 'w+')
     structure_output.write("#Time %g\n" % (dt * step))
     for domain in active_species_pool.species_list():
         structure_output.write('%s    %g\n' % (domain, active_species_pool.get_population(domain)))
-    log = open(clargs.sequence + '_k' + str(clargs.k) + '.log', 'w+')
+    log = open(clargs.sequence + '_k' + '%e' % clargs.k + '.log', 'w+')
     log.write('Step: %3d \n' % step)
     log.flush()
     def recombination(strand, current_length, all_foldons, all_domains, old_species_pool):
@@ -162,7 +162,7 @@ if __name__ == '__main__':
         # for domain in active_species_pool.species_list():
         #     structure_output.write('%s    %g\n'%(domain, active_species_pool.get_population(domain)))
 
-    with gzip.open(clargs.sequence + '_k' + str(clargs.k) + '_domains.p.gz', 'w') as checkpoint_domains:
+    with gzip.open(clargs.sequence + '_k' + '%e' % clargs.k + '_domains.p.gz', 'w') as checkpoint_domains:
         pickle.dump(all_domains, checkpoint_domains)
 
     checkpoint_pool.close()

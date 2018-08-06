@@ -123,7 +123,7 @@ class Domain(object):
 
     def foldonize(self):#If self is a foldon
         self.is_foldon = True
-        self.IFR = [self.l_bound, self.r_bound] #overwrite
+        self.IFR = np.array([self.l_bound, self.r_bound]) #overwrite
         return True
 
     def get_elements(self): #find closed domains. NOTE: No peudo knots
@@ -139,7 +139,7 @@ class Domain(object):
                         if not unpaired:
                             new_element = self.get_domain(base, symb, self.l_bound + index, self.l_bound + index + 1)
                             new_element.reducible = False
-                            new_element.elements = set([new_element])
+                            new_element.elements = set(new_element)
                             elements.append(new_element)
                         else:
                             pass
@@ -156,21 +156,21 @@ class Domain(object):
                                                        self.structure[sub_l_bound-self.l_bound:sub_r_bound-self.l_bound],
                                                               sub_l_bound, sub_r_bound)
                                 new_element.reducible = False
-                                new_element.elements = set([new_element])
+                                new_element.elements = set(new_element)
                                 elements.append(new_element)
-                        except IndexError: #If ')' appears alone
+                        except IndexError:  # If ')' appears alone
                             print('Error: Invalid secondary structure')
                     else:
                         print('Error: Invalid symbol')
                 if unpaired:
                     print('Error: Unfinished structure')
-            if len(elements)==1:
+            if len(elements) == 1:
                 self.reducible = False
             # print([e.structure for e in elements])
             self.elements = set(elements)
         return self.elements
 
-    def get_G(self):#NOTE: G is not initialized, has to be called explicitly before k calculation
+    def get_G(self):  # NOTE: G is not initialized, has to be called explicitly before k calculation
         if not self.G:
             self.G = nupack_functions.nupack_ss_free_energy(sequence=self.sequence, ss=self.structure, T=Temperature)
         # print(self.G)
@@ -228,8 +228,7 @@ class Domain(object):
                 if longer_domain.IFR[-2] > self.r_bound: 
                     return longer_domain
             else:
-                longer_domain.IFR = [index for index in self.IFR]  # Direct deepcopy can be very slow
-                longer_domain.IFR.append(additional_domain.r_bound)
+                longer_domain.IFR = np.append(self.IFR, additional_domain.r_bound)  # Direct deepcopy can be very slow
             # print('segment after elongation: ')
             # print(longer_domain.get_IFR())
             return longer_domain
@@ -343,7 +342,7 @@ class SpeciesPool(object):
 
     def add_species(self, domain, population=0.):
         if domain.get_IFR():
-            if domain not in self.species: self.size += 1
+            if domain not in self.species : self.size += 1
             self.species[domain] += population  # NOTE: duplication means more
 
     def clear(self):

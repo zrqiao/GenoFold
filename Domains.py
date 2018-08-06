@@ -225,7 +225,7 @@ class Domain(object):
                                             self.l_bound, additional_domain.r_bound)
             #update IFR
             if np.any(longer_domain.IFR):
-                if longer_domain.IFR[-2] > self.r_bound: 
+                if longer_domain.IFR[-2] <= self.r_bound:  # Is a better IFR
                     return longer_domain
             else:
                 longer_domain.IFR = np.append(self.IFR, additional_domain.r_bound)  # Direct deepcopy can be very slow

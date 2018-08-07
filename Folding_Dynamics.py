@@ -12,7 +12,8 @@ import time
 # Change following routines for other environments:
 L_init = 10  # Initiation unit
 dL = 10  # elongation unit (also means CG unit)
-dt = 0.1 * dL  # Folding time for each elongation step (0.1 s/nt)
+transcription_rate = 0.1
+dt = transcription_rate * dL  # Folding time for each elongation step (0.1 s/nt)
 population_size_limit = 100  # maximum type of strands in the pool
 MULTI_PROCESS = 32
 
@@ -65,6 +66,7 @@ if __name__ == '__main__':
         else:
             L_step = dL
         current_length += L_step
+        dt = L_step*transcription_rate
         log.write('Current length: %d \n'%current_length)
  
         # Generate all new foldons

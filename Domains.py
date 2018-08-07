@@ -13,7 +13,7 @@ import time
 #Change following routines for other environments:
 Temperature = 37
 k0 = 1
-# k = 1/(8.31441 * (273.15+Temperature))
+R = 1.9858775e-3  # G in kcal/mol
 
 ##
 
@@ -23,7 +23,7 @@ def similar(a, b):
 
 
 def rate(dG, k):
-    return k*np.exp(-dG)
+    return k*np.exp(-dG/(R* (273.15+Temperature)))
 
 def disso(x) : return x.dissociate_energy()
 def loopf(x) : return x.loop_formation_energy()

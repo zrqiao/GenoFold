@@ -188,19 +188,19 @@ class Domain(object):
         return self.G
 
     def dissociate_to_loop(self):#Input is an element
-        #nonempty = re.search(r"^\s*(\S.*?)\s*$", self.sequence)
-        #cent, stid, endid = nonempty.group(1), nonempty.start(1), nonempty.end(1)
-        #Can be a '.' or a helix
+        # nonempty = re.search(r"^\s*(\S.*?)\s*$", self.sequence)
+        # cent, stid, endid = nonempty.group(1), nonempty.start(1), nonempty.end(1)
+        # Can be a '.' or a helix
         # time_1 = time.time()
         if self.loop_state: return self.loop_state
         if self.reducible:
             print('need decompose')
             return False
         else:
-            if self.structure != '.':#Is a helix?
-                #helix_core = sub_ss.structure[1:-1] #Check here!
+            if self.structure != '.':  # Is a helix?
+                # helix_core = sub_ss.structure[1:-1] #Check here!
                 loop_ss = '('+'.'*(self.length-2)+')'
-            else: #Is a '.'?
+            else:  # Is a '.'?
                 loop_ss = self.structure
         loop_state = self.get_domain(self.sequence, ''.join(loop_ss), self.l_bound, self.r_bound)
         # time_2 = time.time()
@@ -213,29 +213,30 @@ class Domain(object):
         # time_1=time.time()
         # NOTE: This version is a very primary estimation for unfolding-folding free energy that did not discriminate
         #  stem/ hairpin/ interior/ multi loops. This part is left for optimization.
-        #if self.structure == '.':
+        # if self.structure == '.':
         #    return 0
-        #else:
+        # else:
         G_loop = self.dissociate_to_loop().get_G()
-        #G_empty=.0
-        #dG_forward= G_loop1 - self.calc_G() + G_loop2 - G_empty
-        #dG_backward = G_loop2 - other.calc_G() + G_loop1 - G_empty
+        # G_empty=.0
+        # dG_forward= G_loop1 - self.calc_G() + G_loop2 - G_empty
+        # dG_backward = G_loop2 - other.calc_G() + G_loop1 - G_empty
         # print(G_loop)
         # time_2=time.time()
         # print(time_2-time_1)
         return G_loop-self.get_G()
 
     def loop_formation_energy(self):
-        #NOTE: This version is a very primary estimation for unfolding-folding free energy that did not discriminate
+        # NOTE: This version is a very primary estimation for unfolding-folding free energy that did not discriminate
         #  stem/ hairpin/ interior/ multi loops. This part is left for optimization.
-        #if self.structure == '.':
+        # if self.structure == '.':
         #    return 0
         G_empty = .0
-        #else:
+        # else:
         G_loop = self.dissociate_to_loop().get_G()
         return G_loop-G_empty
 
-    def elongate(self, additional_domain):#Primary structure have a IFR; elongation structure is a Irreducible foldon;
+    def elongate(self, additional_domain):
+        # Primary structure have a IFR; elongation structure is a Irreducible foldon;
         # generate another valid domain from one
         if self.r_bound != additional_domain.l_bound:
             print('Error: illegal elongation')
@@ -244,7 +245,7 @@ class Domain(object):
             longer_domain = self.get_domain(self.sequence + additional_domain.sequence,
                                             self.structure + additional_domain.structure,
                                             self.l_bound, additional_domain.r_bound)
-            #update IFR
+            # update IFR
             if longer_domain.IFR.size:
                 if longer_domain.IFR[-2] <= self.r_bound:  # Is a better IFR
                     return longer_domain
@@ -267,11 +268,12 @@ class Domain(object):
             return False
         else:
             return False
-        #Add to collection
+        # Add to collection
 
-    ###def pathway_rate(self, other, pathway_collection):#Input
+# def pathway_rate(self, other, pathway_collection):#Input
 
-#class foldon(domain):
+
+# class foldon(domain):
 #    def __init__(self, adomain, foldon_collection):
 #        domain.__init__(self, adomain.sequence, adomain.structure, adomain.lbound, adomain.rbound, foldon_collection)
 #        self.isfoldon = True
@@ -338,7 +340,7 @@ class Pathways(object):     #  Indices of a pathway should be two domain(for rob
             their_contributions = other_site.get_elements() - no_contribution_elements
             # print('othersite: ')
             # print(sorted([[e.structure, e.l_bound, e.r_bound] for e in their_contributions],key=operator.itemgetter(2)))
-            time1 = time.time()
+            # time1 = time.time()
             # print(time2-time1)
  
             # print([[e.structure, e.l_bound, e.r_bound] for e in other_site.get_elements()])
@@ -358,12 +360,12 @@ class Pathways(object):     #  Indices of a pathway should be two domain(for rob
                              sum(map(loopf, my_contributions))
             # multi_pool.close()
             # multi_pool.join()
-            time2 = time.time()
+            # time2 = time.time()
 
             forward_rate = rate(forward_energy, k)
             backward_rate = rate(backward_energy, k)
 
-            print(time2-time1)
+            # print(time2-time1)
             
             # newforwardpathway = pathway(my_site,other_site, forward_rate)
             # newbackwardpathway = pathway(other_site,my_site, backward_rate)
@@ -397,6 +399,7 @@ class SpeciesPool(object):
         memo[id(self)] = newself = self.__class__(self.pathways)  # NOTE: pathway collection is shallow copied!
         newself.size = copy.deepcopy(self.size, memo)
         newself.timestamp = copy.deepcopy(self.timestamp, memo)
+        newself.pathways = self.pathways
         for myspecies in self.species:
             newself.add_species(myspecies, population=self.get_population(myspecies))
         return newself

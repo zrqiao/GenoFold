@@ -10,8 +10,8 @@ import copy
 import time
 
 # Change following routines for other environments:
-L_init = 10  # Initiation unit
-dL = 10  # elongation unit (also means CG unit)
+L_init = 20  # Initiation unit
+dL = 20  # elongation unit (also means CG unit)
 transcription_time = 0.1
 dt = transcription_time * dL  # Folding time for each elongation step (0.1 s/nt)
 population_size_limit = 100  # maximum type of strands in the pool
@@ -114,7 +114,7 @@ if __name__ == '__main__':
         # with gzip.open(clargs.sequence + '_pool.p.gz', 'a') as checkpoint_pool:
         pickle.dump(active_species_pool, checkpoint_pool)
         # with open(clargs.sequence + '.dat', 'a') as structure_output:
-        structure_output.write("#Time %g\n" % (dt * step))
+        structure_output.write("#Time %g\n" % active_species_pool.timestamp)
         for domain in active_species_pool.species_list():
             structure_output.write('%s    %g\n' % (domain, active_species_pool.get_population(domain)))
         # with open(clargs.sequence + '.log', 'a') as log:
@@ -127,6 +127,42 @@ if __name__ == '__main__':
         # for domain in active_species_pool.species_list():
         #     structure_output.write('%s    %g\n'%(domain, active_species_pool.get_population(domain)))
 
+    # Post-transcriptional folding
+
+    time_limit = 100000
+    dt_pt = 100
+
+    while time_limit > active_species_pool.timestamp:
+        step += 1
+        # print('Step: %3d \n'%step)
+        log.write('Post-transcriptional folding:\n')
+        log.write('Step: %3d \n' % step)
+        # old_species_pool = copy.deepcopy(active_species_pool)
+        # old_species_list = old_species_pool.species_list()
+        # active_species_pool.clear()
+        log.flush()
+
+        log.write('Population evolution... \n')
+        log.flush()
+        log.write('Population size before selection: ' + str(active_species_pool.size) + '\n')
+        active_species_pool.evolution(all_pathways, dt)
+        active_species_pool.selection(population_size_limit)
+        log.flush()
+        log.write('Time: %d \n' % active_species_pool.timestamp)
+        log.write('Population size after selection: ' + str(active_species_pool.size) + '\n')
+        log.write('Selection finished \n')
+        # pickle & outputs
+        # with gzip.open(clargs.sequence + '_pool.p.gz', 'a') as checkpoint_pool:
+        pickle.dump(active_species_pool, checkpoint_pool)
+        # with open(clargs.sequence + '.dat', 'a') as structure_output:
+        structure_output.write("#Time %g\n" % active_species_pool.timestamp)
+        for domain in active_species_pool.species_list():
+            structure_output.write('%s    %g\n' % (domain, active_species_pool.get_population(domain)))
+        # with open(clargs.sequence + '.log', 'a') as log:
+        # log.write('Step: %3d \n' % step)
+
+        log.flush()
+        structure_output.flush()
     with gzip.open(clargs.sequence + '_k' + '%e' % clargs.k + '_domains.p.gz', 'w') as checkpoint_domains:
         pickle.dump(all_domains, checkpoint_domains)
 

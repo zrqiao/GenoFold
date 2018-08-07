@@ -8,6 +8,7 @@ import re
 from scipy.sparse import csc_matrix
 from scipy.sparse.linalg import expm, expm_multiply
 import copy
+import time
 
 #Change following routines for other environments:
 Temperature = 37
@@ -24,6 +25,9 @@ def similar(a, b):
 def rate(dG, k):
     return k*np.exp(-dG)
 
+def disso(x) : return x.dissociate_energy()
+def loopf(x) : return x.loop_formation_energy()
+
 
 class DomainsCollection(object):
     def __init__(self):
@@ -37,7 +41,7 @@ class DomainsCollection(object):
 
     def get_domain(self, sequence, structure, l_bound, r_bound):#Get another domain from collection or create a new one
         key = (sequence, structure, l_bound, r_bound)
-        if key in self.collection:
+        if key in self.collection.keys():
             return self.collection[key]
         else:
             new_domain = Domain(sequence, structure, l_bound, r_bound, self)
@@ -73,7 +77,7 @@ class FoldonCollection(object):
         new_foldon = domain_collection.get_domain(sequence, mfe, l_bound, r_bound)  # TODO: degeneracy
         new_foldon.foldonize()
         if new_foldon not in self.collection[l_bound, r_bound]:
-            self.add_foldon(new_foldon)
+            self.add_foldon(new_foldon)  # Don't forget to modify
         # print(new_foldon.get_IFR())
         return new_foldon
 
@@ -92,6 +96,7 @@ class Domain(object):
         self.is_foldon = False
         self.IFR = np.array([])  # Irreducible foldons representation NOTE: IFR is automatically generated when initiate foldons
         self.collection = collection  # NOTE: collection is a domains_collection
+        self.loop_state = None
 
     def __eq__(self, other):
         return self.structure == other.structure and self.l_bound == other.l_bound and self.r_bound == other.r_bound
@@ -171,8 +176,14 @@ class Domain(object):
         return self.elements
 
     def get_G(self):  # NOTE: G is not initialized, has to be called explicitly before k calculation
-        if not self.G:
-            self.G = nupack_functions.nupack_ss_free_energy(sequence=self.sequence, ss=self.structure, T=Temperature)
+        if self.G == None:  # NOTE:0.00=False!
+            if self.l_bound !=0:  # Redirect to domain with the same ss
+                self.G = self.get_domain(self.sequence, self.structure, 0, self.length).get_G()
+            else:
+                # time1=time.time()
+                self.G = nupack_functions.nupack_ss_free_energy(sequence=self.sequence, ss=self.structure, T=Temperature)
+                time2=time.time()
+                # print(time2-time1)
         # print(self.G)
         return self.G
 
@@ -180,6 +191,8 @@ class Domain(object):
         #nonempty = re.search(r"^\s*(\S.*?)\s*$", self.sequence)
         #cent, stid, endid = nonempty.group(1), nonempty.start(1), nonempty.end(1)
         #Can be a '.' or a helix
+        # time_1 = time.time()
+        if self.loop_state: return self.loop_state
         if self.reducible:
             print('need decompose')
             return False
@@ -190,10 +203,15 @@ class Domain(object):
             else: #Is a '.'?
                 loop_ss = self.structure
         loop_state = self.get_domain(self.sequence, ''.join(loop_ss), self.l_bound, self.r_bound)
+        # time_2 = time.time()
+        # print(time_2-time_1)
+        self.loop_state = loop_state
+        # print(loop_state.sequence)
         return loop_state
 
     def dissociate_energy(self):
-        #NOTE: This version is a very primary estimation for unfolding-folding free energy that did not discriminate
+        # time_1=time.time()
+        # NOTE: This version is a very primary estimation for unfolding-folding free energy that did not discriminate
         #  stem/ hairpin/ interior/ multi loops. This part is left for optimization.
         #if self.structure == '.':
         #    return 0
@@ -202,6 +220,9 @@ class Domain(object):
         #G_empty=.0
         #dG_forward= G_loop1 - self.calc_G() + G_loop2 - G_empty
         #dG_backward = G_loop2 - other.calc_G() + G_loop1 - G_empty
+        # print(G_loop)
+        # time_2=time.time()
+        # print(time_2-time_1)
         return G_loop-self.get_G()
 
     def loop_formation_energy(self):
@@ -236,10 +257,10 @@ class Domain(object):
     def check_availability(self, other): #Forward rearrangement
         IFRa = set(self.IFR)
         IFRb = set(other.IFR)
-        if IFRa == IFRb:
-            return False
-        elif IFRa >= IFRb:
+        
+        if IFRa >= IFRb:
             diff = IFRa - IFRb
+            if not diff : return False
             for i in range(len(other.IFR)-1):
                 if max(diff) < other.IFR[i+1] and min(diff) > other.IFR[i]:
                     return other.IFR[i], other.IFR[i+1] #Exact indices of rearrangement site
@@ -308,26 +329,48 @@ class Pathways(object):     #  Indices of a pathway should be two domain(for rob
             backward_rate = self.get_rate(other_site, my_site)
         else:
             # Rate calculation
+            # time1 = time.time()
             no_contribution_elements = my_site.get_elements() & other_site.get_elements()
             my_contributions = my_site.get_elements() - no_contribution_elements
             # print('mysite: ')
             # print(sorted([[e.structure, e.l_bound, e.r_bound] for e in my_contributions],key=operator.itemgetter(2)))
-
+             
             their_contributions = other_site.get_elements() - no_contribution_elements
             # print('othersite: ')
             # print(sorted([[e.structure, e.l_bound, e.r_bound] for e in their_contributions],key=operator.itemgetter(2)))
-
+            time1 = time.time()
+            # print(time2-time1)
+ 
             # print([[e.structure, e.l_bound, e.r_bound] for e in other_site.get_elements()])
-            forward_energy = sum([x.dissociate_energy() for x in my_contributions]) + \
-                            sum([x.loop_formation_energy() for x in their_contributions])
-            backward_energy = sum([x.dissociate_energy() for x in their_contributions]) + \
-                             sum([x.loop_formation_energy() for x in my_contributions])
+
+            # NOTE: This is the actual computational bottleneck 
+            # multi_pool = Pool()
+            # print(len(my_contributions))
+            # for x in my_contributions:
+                # print(x, x.sequence)
+                # multi_pool.apply_async(disso, x)
+            forward_energy = sum(map(disso, my_contributions)) + \
+                            sum(map(loopf, their_contributions))
+            # time2 = time.time()
+            # print(time2-time1)
+
+            backward_energy = sum(map(disso, their_contributions)) + \
+                             sum(map(loopf, my_contributions))
+            # multi_pool.close()
+            # multi_pool.join()
+            time2 = time.time()
+
             forward_rate = rate(forward_energy, k)
             backward_rate = rate(backward_energy, k)
+
+            print(time2-time1)
+            
             # newforwardpathway = pathway(my_site,other_site, forward_rate)
             # newbackwardpathway = pathway(other_site,my_site, backward_rate)
             self.add(my_site, other_site, forward_rate)
             self.add(other_site, my_site, backward_rate)
+            time2 = time.time()
+            # print(time2-time1)
         self.add(source, sink, forward_rate)
         self.add(sink, source, backward_rate)
         return forward_rate, backward_rate
@@ -406,6 +449,7 @@ class SpeciesPool(object):
 
 
 def recombination(strand, current_length, all_foldons, all_domains, old_species_pool, active_species_pool):
+    # test_time_1 = time.time()
     for rearrange_point in strand.get_IFR():
         if rearrange_point == 0:  # Global rearrangement
             for overlapping_foldon in all_foldons.find_foldons(rearrange_point, current_length):
@@ -423,3 +467,5 @@ def recombination(strand, current_length, all_foldons, all_domains, old_species_
                                                              strand.get_structure()[0:rearrange_point], 0,
                                                              rearrange_point)
                 active_species_pool.add_species(unrearranged_domain.elongate(overlapping_foldon))
+    # test_time_2 = time.time()
+    # print(test_time_2-test_time_1)

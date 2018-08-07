@@ -7,12 +7,13 @@ import nupack_functions
 import argparse, math, random, gzip, pickle, types
 from multiprocessing import Pool
 import copy
+import time
 
 # Change following routines for other environments:
-L_init = 50  # Initiation unit
-dL = 25  # elongation unit (also means CG unit)
+L_init = 10  # Initiation unit
+dL = 10  # elongation unit (also means CG unit)
 dt = 0.1 * dL  # Folding time for each elongation step (0.1 s/nt)
-population_size_limit = 10  # maximum type of strands in the pool
+population_size_limit = 25  # maximum type of strands in the pool
 MULTI_PROCESS = 32
 
 if __name__ == '__main__':
@@ -83,10 +84,15 @@ if __name__ == '__main__':
         # Compute all IFR segments; link sequences; update IFRs
         log.write('Generating new secondary structures...')
         log.flush()
+        # time1 = time.time()
+ 
         for strand in old_species_list:
-            Domains.recombination(
+           Domains.recombination(
                 strand, current_length, all_foldons,
                 all_domains, old_species_pool, active_species_pool)  # parallelization
+        # time2 = time.time()
+        # print(time2-time1)
+ 
         log.write(' finished\n')        
 
         log.write('active space: ')
@@ -94,6 +100,7 @@ if __name__ == '__main__':
         # NOTE: population dynamics (master equation)
 
         log.write('Population evolution... \n')
+        log.flush()
         log.write('Population size before selection: '+str(active_species_pool.size)+'\n')
         active_species_pool.evolution(all_pathways, dt)
         active_species_pool.selection(population_size_limit)

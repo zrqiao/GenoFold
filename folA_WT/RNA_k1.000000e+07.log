@@ -1,65 +1,214 @@
 Step:   0 
 Step:   1 
-Current length: 75 
+Current length: 20 
 Calculate new foldons... finished
 Generating new secondary structures... finished
-active space: [0^75, 0^50^75]
+active space: [0^20, 0^10^20]
 Population evolution... 
 Population size before selection: 2
-Time: 2 
+Time: 1 
 Population size after selection: 2
 Selection finished 
 Step:   2 
-Current length: 100 
+Current length: 30 
 Calculate new foldons... finished
 Generating new secondary structures... finished
-active space: [0^100, 0^50^100]
-Population evolution... 
-Population size before selection: 2
-Time: 5 
-Population size after selection: 2
-Selection finished 
-Step:   3 
-Current length: 125 
-Calculate new foldons... finished
-Generating new secondary structures... finished
-active space: [0^125, 0^100^125, 0^50^100^125]
+active space: [0^30, 0^10^30, 0^10^20^30]
 Population evolution... 
 Population size before selection: 3
-Time: 7 
+Time: 2 
+Population size after selection: 3
+Selection finished 
+Step:   3 
+Current length: 40 
+Calculate new foldons... finished
+Generating new secondary structures... finished
+active space: [0^40, 0^10^40, 0^10^20^40]
+Population evolution... 
+Population size before selection: 3
+Time: 3 
 Population size after selection: 3
 Selection finished 
 Step:   4 
-Current length: 150 
+Current length: 50 
 Calculate new foldons... finished
 Generating new secondary structures... finished
-active space: [0^150, 0^125^150, 0^100^150, 0^100^125^150, 0^50^100^150, 0^50^100^125^150]
+active space: [0^50, 0^40^50, 0^10^50, 0^10^40^50, 0^10^20^40^50]
 Population evolution... 
-Population size before selection: 6
-Time: 10 
-Population size after selection: 6
+Population size before selection: 5
+Time: 4 
+Population size after selection: 5
 Selection finished 
 Step:   5 
-Current length: 175 
+Current length: 60 
 Calculate new foldons... finished
 Generating new secondary structures... finished
-active space: [0^175, 0^150^175, 0^125^175, 0^125^150^175, 0^100^175, 0^100^150^175, 0^100^125^175, 0^100^125^150^175, 0^50^100^175, 0^50^100^150^175, 0^50^100^125^175, 0^50^100^125^150^175]
+active space: [0^60, 0^50^60, 0^40^60, 0^40^50^60, 0^10^60, 0^10^50^60, 0^10^40^60, 0^10^40^50^60, 0^10^20^40^60, 0^10^20^40^50^60]
 Population evolution... 
-Population size before selection: 12
-Time: 12 
+Population size before selection: 10
+Time: 5 
 Population size after selection: 10
 Selection finished 
 Step:   6 
-Current length: 200 
+Current length: 70 
 Calculate new foldons... finished
 Generating new secondary structures... finished
-active space: [0^200, 0^50^100^200, 0^50^100^150^200, 0^50^100^150^175^200, 0^50^100^125^200, 0^50^100^125^175^200, 0^50^100^125^150^200, 0^50^100^125^150^175^200, 0^50^100^175^200, 0^100^200, 0^100^150^200, 0^100^150^175^200, 0^100^125^200, 0^100^125^175^200, 0^100^125^150^200, 0^100^125^150^175^200, 0^175^200, 0^125^200, 0^125^175^200, 0^150^200, 0^150^175^200]
+active space: [0^70, 0^60^70, 0^50^70, 0^50^60^70, 0^40^70, 0^40^60^70, 0^40^50^70, 0^40^50^60^70, 0^10^70, 0^10^60^70, 0^10^50^70, 0^10^50^60^70, 0^10^40^70, 0^10^40^60^70, 0^10^40^50^70, 0^10^40^50^60^70, 0^10^20^70, 0^10^20^40^70, 0^10^20^40^60^70, 0^10^20^40^50^70, 0^10^20^40^50^60^70]
 Population evolution... 
 Population size before selection: 21
-Time: 15 
+Time: 6 
 Population size after selection: 10
 Selection finished 
 Step:   7 
-Current length: 225 
+Current length: 80 
 Calculate new foldons... finished
-Generating new secondary structures...
+Generating new secondary structures... finished
+active space: [0^80, 0^60^80, 0^60^70^80, 0^70^80, 0^40^80, 0^40^70^80, 0^50^70^80, 0^50^60^80, 0^50^60^70^80, 0^10^80, 0^10^20^80, 0^10^20^70^80, 0^10^70^80, 0^10^20^40^80, 0^10^20^40^70^80, 0^10^60^80, 0^10^60^70^80, 0^10^40^80, 0^10^40^70^80]
+Population evolution... 
+Population size before selection: 19
+Time: 7 
+Population size after selection: 10
+Selection finished 
+Step:   8 
+Current length: 90 
+Calculate new foldons... finished
+Generating new secondary structures... finished
+active space: [0^90, 0^60^90, 0^80^90, 0^40^90, 0^40^80^90, 0^40^70^90, 0^40^70^80^90, 0^60^70^90, 0^60^70^80^90, 0^50^60^90, 0^70^90, 0^70^80^90, 0^10^90, 0^10^20^90, 0^10^20^80^90, 0^10^80^90, 0^10^60^90]
+Population evolution... 
+Population size before selection: 17
+Time: 8 
+Population size after selection: 10
+Selection finished 
+Step:   9 
+Current length: 100 
+Calculate new foldons... finished
+Generating new secondary structures... finished
+active space: [0^100, 0^90^100, 0^60^100, 0^60^70^100, 0^60^70^90^100, 0^70^100, 0^70^90^100, 0^60^90^100, 0^40^100, 0^40^70^100, 0^40^70^90^100, 0^80^100, 0^80^90^100, 0^40^80^100, 0^40^80^90^100, 0^50^100, 0^50^60^100, 0^50^60^90^100, 0^40^90^100, 0^60^70^80^100, 0^60^70^80^90^100]
+Population evolution... 
+Population size before selection: 21
+Time: 9 
+Population size after selection: 10
+Selection finished 
+Step:  10 
+Current length: 110 
+Calculate new foldons... finished
+Generating new secondary structures... finished
+active space: [0^110, 0^100^110, 0^70^110, 0^70^100^110, 0^40^110, 0^40^70^110, 0^40^70^100^110, 0^80^110, 0^80^100^110, 0^40^80^110, 0^40^80^100^110, 0^60^110, 0^60^70^110, 0^60^70^100^110, 0^50^100^110, 0^60^100^110, 0^40^90^110, 0^40^90^100^110, 0^80^90^110, 0^80^90^100^110]
+Population evolution... 
+Population size before selection: 20
+Time: 10 
+Population size after selection: 10
+Selection finished 
+Step:  11 
+Current length: 120 
+Calculate new foldons... finished
+Generating new secondary structures... finished
+active space: [0^120, 0^100^120, 0^70^120, 0^70^100^120, 0^40^120, 0^40^70^120, 0^40^70^100^120, 0^60^70^120, 0^60^70^100^120, 0^40^80^120, 0^40^80^110^120, 0^50^120, 0^50^100^120, 0^80^120, 0^80^110^120, 0^40^80^100^120, 0^80^100^120, 0^60^100^120]
+Population evolution... 
+Population size before selection: 18
+Time: 11 
+Population size after selection: 10
+Selection finished 
+Step:  12 
+Current length: 130 
+Calculate new foldons... finished
+Generating new secondary structures... finished
+active space: [0^130, 0^100^130, 0^100^120^130, 0^70^130, 0^70^100^130, 0^70^100^120^130, 0^40^130, 0^40^70^130, 0^40^70^100^130, 0^40^70^100^120^130, 0^60^130, 0^60^70^130, 0^60^70^100^130, 0^60^70^100^120^130, 0^50^100^130, 0^50^100^120^130, 0^40^80^130, 0^40^80^120^130, 0^80^130, 0^80^120^130, 0^60^100^130, 0^60^100^120^130, 0^40^80^110^130, 0^40^80^110^120^130, 0^80^110^130, 0^80^110^120^130]
+Population evolution... 
+Population size before selection: 26
+Time: 12 
+Population size after selection: 10
+Selection finished 
+Step:  13 
+Current length: 140 
+Calculate new foldons... finished
+Generating new secondary structures... finished
+active space: [0^140, 0^100^140, 0^100^130^140, 0^70^140, 0^70^100^140, 0^70^100^130^140, 0^40^140, 0^40^70^140, 0^40^70^100^140, 0^40^70^100^130^140, 0^60^140, 0^60^70^140, 0^60^70^100^140, 0^60^70^100^130^140, 0^50^100^140, 0^50^100^130^140, 0^60^100^140, 0^60^100^130^140, 0^100^120^140, 0^100^120^130^140, 0^40^80^140, 0^40^80^120^140, 0^40^80^120^130^140, 0^80^140, 0^80^120^140, 0^80^120^130^140, 0^40^80^110^140, 0^40^80^110^130^140]
+Population evolution... 
+Population size before selection: 28
+Time: 13 
+Population size after selection: 10
+Selection finished 
+Step:  14 
+Current length: 150 
+Calculate new foldons... finished
+Generating new secondary structures... finished
+active space: [0^150, 0^100^150, 0^100^130^150, 0^70^150, 0^70^100^150, 0^70^100^130^150, 0^40^150, 0^40^70^150, 0^40^70^100^150, 0^40^70^100^130^150, 0^60^150, 0^60^70^150, 0^60^70^100^150, 0^60^70^100^130^150, 0^50^100^150, 0^50^100^130^150]
+Population evolution... 
+Population size before selection: 16
+Time: 14 
+Population size after selection: 10
+Selection finished 
+Step:  15 
+Current length: 160 
+Calculate new foldons... finished
+Generating new secondary structures... finished
+active space: [0^160, 0^100^160, 0^100^130^160, 0^100^130^150^160, 0^100^150^160, 0^70^160, 0^70^100^160, 0^70^100^130^160, 0^70^100^130^150^160, 0^70^100^150^160, 0^40^160, 0^40^70^160, 0^40^70^100^160, 0^40^70^100^130^160, 0^40^70^100^130^150^160, 0^40^70^100^150^160, 0^60^160, 0^60^70^160, 0^60^70^100^160, 0^60^70^100^130^160, 0^60^70^100^130^150^160, 0^60^70^100^150^160, 0^50^100^160, 0^50^100^130^160, 0^50^100^130^150^160, 0^50^100^150^160]
+Population evolution... 
+Population size before selection: 26
+Time: 15 
+Population size after selection: 10
+Selection finished 
+Step:  16 
+Current length: 170 
+Calculate new foldons... finished
+Generating new secondary structures... finished
+active space: [0^170, 0^100^170, 0^100^160^170, 0^70^170, 0^70^100^170, 0^70^100^160^170, 0^100^130^170, 0^100^130^150^170, 0^100^130^150^160^170, 0^100^150^170, 0^100^150^160^170, 0^100^130^160^170, 0^40^170, 0^40^70^170, 0^40^70^100^170, 0^40^70^100^160^170, 0^60^170, 0^60^70^170, 0^60^70^100^170, 0^60^70^100^160^170, 0^50^100^170, 0^50^100^160^170, 0^70^100^130^170, 0^70^100^130^150^170, 0^70^100^130^150^160^170, 0^70^100^150^170, 0^70^100^150^160^170]
+Population evolution... 
+Population size before selection: 27
+Time: 16 
+Population size after selection: 10
+Selection finished 
+Step:  17 
+Current length: 180 
+Calculate new foldons... finished
+Generating new secondary structures... finished
+active space: [0^180, 0^100^180, 0^100^160^180, 0^100^160^170^180, 0^100^130^180, 0^100^130^170^180, 0^70^180, 0^70^100^180, 0^70^100^160^180, 0^70^100^160^170^180, 0^70^100^130^180, 0^70^100^130^170^180, 0^40^180, 0^40^70^180, 0^40^70^100^180, 0^40^70^100^160^180, 0^40^70^100^160^170^180, 0^60^180, 0^60^70^180, 0^60^70^100^180, 0^60^70^100^160^180, 0^60^70^100^160^170^180, 0^100^150^180, 0^100^150^170^180, 0^50^100^180, 0^50^100^160^180, 0^50^100^160^170^180, 0^100^130^150^180, 0^100^130^150^170^180, 0^70^100^150^180, 0^70^100^150^170^180]
+Population evolution... 
+Population size before selection: 31
+Time: 17 
+Population size after selection: 10
+Selection finished 
+Step:  18 
+Current length: 190 
+Calculate new foldons... finished
+Generating new secondary structures... finished
+active space: [0^190, 0^100^190, 0^100^160^190, 0^100^160^180^190, 0^100^130^190, 0^100^130^180^190, 0^100^160^170^190, 0^100^160^170^180^190, 0^70^190, 0^70^100^190, 0^70^100^160^190, 0^70^100^160^180^190, 0^70^100^130^190, 0^70^100^130^180^190, 0^40^190, 0^40^70^190, 0^40^70^100^190, 0^40^70^100^160^190, 0^40^70^100^160^180^190, 0^100^130^170^190, 0^100^130^170^180^190, 0^60^190, 0^60^70^190, 0^60^70^100^190, 0^60^70^100^160^190, 0^60^70^100^160^180^190, 0^70^100^160^170^190, 0^70^100^160^170^180^190, 0^100^150^190, 0^100^150^180^190]
+Population evolution... 
+Population size before selection: 30
+Time: 18 
+Population size after selection: 10
+Selection finished 
+Step:  19 
+Current length: 200 
+Calculate new foldons... finished
+Generating new secondary structures... finished
+active space: [0^200, 0^100^200, 0^100^160^200, 0^100^160^190^200, 0^100^130^200, 0^100^130^180^200, 0^100^130^180^190^200, 0^70^200, 0^70^100^200, 0^70^100^160^200, 0^70^100^160^190^200, 0^100^130^190^200, 0^100^190^200, 0^70^100^130^200, 0^70^100^130^180^200, 0^70^100^130^180^190^200, 0^40^200, 0^40^70^200, 0^40^70^100^200, 0^40^70^100^160^200, 0^40^70^100^160^190^200, 0^100^130^170^200, 0^100^130^170^190^200, 0^60^200, 0^60^70^200, 0^60^70^100^200, 0^60^70^100^160^200, 0^60^70^100^160^190^200, 0^100^160^180^200, 0^100^160^180^190^200]
+Population evolution... 
+Population size before selection: 30
+Time: 19 
+Population size after selection: 10
+Selection finished 
+Step:  20 
+Current length: 210 
+Calculate new foldons... finished
+Generating new secondary structures... finished
+active space: [0^210, 0^100^210, 0^100^160^210, 0^100^160^200^210, 0^100^130^210, 0^100^130^180^210, 0^100^130^180^200^210, 0^70^210, 0^70^100^210, 0^70^100^160^210, 0^70^100^160^200^210, 0^100^130^190^210, 0^100^130^190^200^210, 0^100^190^210, 0^100^190^200^210, 0^70^100^130^210, 0^70^100^130^180^210, 0^70^100^130^180^200^210, 0^40^210, 0^40^70^210, 0^40^70^100^210, 0^40^70^100^160^210, 0^40^70^100^160^200^210, 0^60^210, 0^60^70^210, 0^60^70^100^210, 0^60^70^100^160^210, 0^60^70^100^160^200^210, 0^100^130^180^190^210, 0^100^130^180^190^200^210, 0^100^130^170^210, 0^100^130^170^200^210]
+Population evolution... 
+Population size before selection: 32
+Time: 20 
+Population size after selection: 10
+Selection finished 
+Step:  21 
+Current length: 220 
+Calculate new foldons... finished
+Generating new secondary structures... finished
+active space: [0^220, 0^100^220, 0^100^160^220, 0^100^130^220, 0^100^130^180^220, 0^70^220, 0^70^100^220, 0^70^100^160^220, 0^70^100^130^220, 0^70^100^130^180^220, 0^40^220, 0^40^70^220, 0^40^70^100^220, 0^40^70^100^160^220, 0^100^160^200^220, 0^100^160^200^210^220, 0^60^220, 0^60^70^220, 0^60^70^100^220, 0^60^70^100^160^220, 0^100^130^170^220, 0^100^130^170^200^220, 0^100^130^170^200^210^220]
+Population evolution... 
+Population size before selection: 23
+Time: 21 
+Population size after selection: 10
+Selection finished 
+Step:  22 
+Current length: 230 
+Calculate new foldons...

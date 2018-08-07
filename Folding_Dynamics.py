@@ -13,7 +13,7 @@ import time
 L_init = 10  # Initiation unit
 dL = 10  # elongation unit (also means CG unit)
 dt = 0.1 * dL  # Folding time for each elongation step (0.1 s/nt)
-population_size_limit = 25  # maximum type of strands in the pool
+population_size_limit = 100  # maximum type of strands in the pool
 MULTI_PROCESS = 32
 
 if __name__ == '__main__':
@@ -95,8 +95,8 @@ if __name__ == '__main__':
  
         log.write(' finished\n')        
 
-        log.write('active space: ')
-        log.write(str(active_species_pool.species_list())+'\n')
+        # log.write('active space: ')
+        # log.write(str(active_species_pool.species_list())+'\n')
         # NOTE: population dynamics (master equation)
 
         log.write('Population evolution... \n')

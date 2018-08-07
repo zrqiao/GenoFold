@@ -1,45 +1,355 @@
 Step:   0 
 Step:   1 
-Current length: 75 
+Current length: 20 
 Calculate new foldons... finished
 Generating new secondary structures... finished
-active space: [0^75, 0^50^75]
 Population evolution... 
 Population size before selection: 2
-Time: 2 
+Time: 1 
 Population size after selection: 2
 Selection finished 
 Step:   2 
-Current length: 100 
+Current length: 30 
 Calculate new foldons... finished
 Generating new secondary structures... finished
-active space: [0^100, 0^50^100]
-Population evolution... 
-Population size before selection: 2
-Time: 5 
-Population size after selection: 2
-Selection finished 
-Step:   3 
-Current length: 125 
-Calculate new foldons... finished
-Generating new secondary structures... finished
-active space: [0^125, 0^100^125, 0^50^100^125]
 Population evolution... 
 Population size before selection: 3
-Time: 7 
+Time: 2 
+Population size after selection: 3
+Selection finished 
+Step:   3 
+Current length: 40 
+Calculate new foldons... finished
+Generating new secondary structures... finished
+Population evolution... 
+Population size before selection: 3
+Time: 3 
 Population size after selection: 3
 Selection finished 
 Step:   4 
+Current length: 50 
+Calculate new foldons... finished
+Generating new secondary structures... finished
+Population evolution... 
+Population size before selection: 5
+Time: 4 
+Population size after selection: 5
+Selection finished 
+Step:   5 
+Current length: 60 
+Calculate new foldons... finished
+Generating new secondary structures... finished
+Population evolution... 
+Population size before selection: 10
+Time: 5 
+Population size after selection: 10
+Selection finished 
+Step:   6 
+Current length: 70 
+Calculate new foldons... finished
+Generating new secondary structures... finished
+Population evolution... 
+Population size before selection: 21
+Time: 6 
+Population size after selection: 21
+Selection finished 
+Step:   7 
+Current length: 80 
+Calculate new foldons... finished
+Generating new secondary structures... finished
+Population evolution... 
+Population size before selection: 40
+Time: 7 
+Population size after selection: 40
+Selection finished 
+Step:   8 
+Current length: 90 
+Calculate new foldons... finished
+Generating new secondary structures... finished
+Population evolution... 
+Population size before selection: 66
+Time: 8 
+Population size after selection: 66
+Selection finished 
+Step:   9 
+Current length: 100 
+Calculate new foldons... finished
+Generating new secondary structures... finished
+Population evolution... 
+Population size before selection: 133
+Time: 9 
+Population size after selection: 100
+Selection finished 
+Step:  10 
+Current length: 110 
+Calculate new foldons... finished
+Generating new secondary structures... finished
+Population evolution... 
+Population size before selection: 207
+Time: 10 
+Population size after selection: 100
+Selection finished 
+Step:  11 
+Current length: 120 
+Calculate new foldons... finished
+Generating new secondary structures... finished
+Population evolution... 
+Population size before selection: 132
+Time: 11 
+Population size after selection: 100
+Selection finished 
+Step:  12 
+Current length: 130 
+Calculate new foldons... finished
+Generating new secondary structures... finished
+Population evolution... 
+Population size before selection: 217
+Time: 12 
+Population size after selection: 100
+Selection finished 
+Step:  13 
+Current length: 140 
+Calculate new foldons... finished
+Generating new secondary structures... finished
+Population evolution... 
+Population size before selection: 224
+Time: 13 
+Population size after selection: 100
+Selection finished 
+Step:  14 
 Current length: 150 
 Calculate new foldons... finished
 Generating new secondary structures... finished
-active space: [0^150, 0^125^150, 0^100^150, 0^100^125^150, 0^50^100^150, 0^50^100^125^150]
 Population evolution... 
-Population size before selection: 6
-Time: 10 
-Population size after selection: 6
+Population size before selection: 160
+Time: 14 
+Population size after selection: 100
 Selection finished 
-Step:   5 
-Current length: 175 
+Step:  15 
+Current length: 160 
 Calculate new foldons... finished
-Generating new secondary structures...
+Generating new secondary structures... finished
+Population evolution... 
+Population size before selection: 225
+Time: 15 
+Population size after selection: 100
+Selection finished 
+Step:  16 
+Current length: 170 
+Calculate new foldons... finished
+Generating new secondary structures... finished
+Population evolution... 
+Population size before selection: 250
+Time: 16 
+Population size after selection: 100
+Selection finished 
+Step:  17 
+Current length: 180 
+Calculate new foldons... finished
+Generating new secondary structures... finished
+Population evolution... 
+Population size before selection: 245
+Time: 17 
+Population size after selection: 100
+Selection finished 
+Step:  18 
+Current length: 190 
+Calculate new foldons... finished
+Generating new secondary structures... finished
+Population evolution... 
+Population size before selection: 264
+Time: 18 
+Population size after selection: 100
+Selection finished 
+Step:  19 
+Current length: 200 
+Calculate new foldons... finished
+Generating new secondary structures... finished
+Population evolution... 
+Population size before selection: 279
+Time: 19 
+Population size after selection: 100
+Selection finished 
+Step:  20 
+Current length: 210 
+Calculate new foldons... finished
+Generating new secondary structures... finished
+Population evolution... 
+Population size before selection: 282
+Time: 20 
+Population size after selection: 100
+Selection finished 
+Step:  21 
+Current length: 220 
+Calculate new foldons... finished
+Generating new secondary structures... finished
+Population evolution... 
+Population size before selection: 270
+Time: 21 
+Population size after selection: 100
+Selection finished 
+Step:  22 
+Current length: 230 
+Calculate new foldons... finished
+Generating new secondary structures... finished
+Population evolution... 
+Population size before selection: 253
+Time: 22 
+Population size after selection: 100
+Selection finished 
+Step:  23 
+Current length: 240 
+Calculate new foldons... finished
+Generating new secondary structures... finished
+Population evolution... 
+Population size before selection: 235
+Time: 23 
+Population size after selection: 100
+Selection finished 
+Step:  24 
+Current length: 250 
+Calculate new foldons... finished
+Generating new secondary structures... finished
+Population evolution... 
+Population size before selection: 285
+Time: 24 
+Population size after selection: 100
+Selection finished 
+Step:  25 
+Current length: 260 
+Calculate new foldons... finished
+Generating new secondary structures... finished
+Population evolution... 
+Population size before selection: 424
+Time: 25 
+Population size after selection: 100
+Selection finished 
+Step:  26 
+Current length: 270 
+Calculate new foldons... finished
+Generating new secondary structures... finished
+Population evolution... 
+Population size before selection: 527
+Time: 26 
+Population size after selection: 100
+Selection finished 
+Step:  27 
+Current length: 280 
+Calculate new foldons... finished
+Generating new secondary structures... finished
+Population evolution... 
+Population size before selection: 554
+Time: 27 
+Population size after selection: 100
+Selection finished 
+Step:  28 
+Current length: 290 
+Calculate new foldons... finished
+Generating new secondary structures... finished
+Population evolution... 
+Population size before selection: 467
+Time: 28 
+Population size after selection: 100
+Selection finished 
+Step:  29 
+Current length: 300 
+Calculate new foldons... finished
+Generating new secondary structures... finished
+Population evolution... 
+Population size before selection: 567
+Time: 29 
+Population size after selection: 100
+Selection finished 
+Step:  30 
+Current length: 310 
+Calculate new foldons... finished
+Generating new secondary structures... finished
+Population evolution... 
+Population size before selection: 567
+Time: 30 
+Population size after selection: 100
+Selection finished 
+Step:  31 
+Current length: 320 
+Calculate new foldons... finished
+Generating new secondary structures... finished
+Population evolution... 
+Population size before selection: 667
+Time: 31 
+Population size after selection: 100
+Selection finished 
+Step:  32 
+Current length: 330 
+Calculate new foldons... finished
+Generating new secondary structures... finished
+Population evolution... 
+Population size before selection: 651
+Time: 32 
+Population size after selection: 100
+Selection finished 
+Step:  33 
+Current length: 340 
+Calculate new foldons... finished
+Generating new secondary structures... finished
+Population evolution... 
+Population size before selection: 650
+Time: 33 
+Population size after selection: 100
+Selection finished 
+Step:  34 
+Current length: 350 
+Calculate new foldons... finished
+Generating new secondary structures... finished
+Population evolution... 
+Population size before selection: 656
+Time: 34 
+Population size after selection: 100
+Selection finished 
+Step:  35 
+Current length: 360 
+Calculate new foldons... finished
+Generating new secondary structures... finished
+Population evolution... 
+Population size before selection: 848
+Time: 35 
+Population size after selection: 100
+Selection finished 
+Step:  36 
+Current length: 370 
+Calculate new foldons... finished
+Generating new secondary structures... finished
+Population evolution... 
+Population size before selection: 834
+Time: 36 
+Population size after selection: 100
+Selection finished 
+Step:  37 
+Current length: 380 
+Calculate new foldons... finished
+Generating new secondary structures... finished
+Population evolution... 
+Population size before selection: 942
+Time: 37 
+Population size after selection: 100
+Selection finished 
+Step:  38 
+Current length: 390 
+Calculate new foldons... finished
+Generating new secondary structures... finished
+Population evolution... 
+Population size before selection: 737
+Time: 38 
+Population size after selection: 100
+Selection finished 
+Step:  39 
+Current length: 400 
+Calculate new foldons... finished
+Generating new secondary structures... finished
+Population evolution... 
+Population size before selection: 706
+Time: 39 
+Population size after selection: 100
+Selection finished 
+Step:  40 
+Current length: 410 
+Calculate new foldons...

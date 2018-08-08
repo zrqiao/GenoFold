@@ -145,7 +145,7 @@ if __name__ == '__main__':
         log.write('Population evolution... \n')
         log.flush()
         log.write('Population size before selection: ' + str(active_species_pool.size) + '\n')
-        active_species_pool.evolution(all_pathways, dt)
+        active_species_pool.evolution(all_pathways, dt_pt)
         active_species_pool.selection(population_size_limit)
         log.flush()
         log.write('Time: %d \n' % active_species_pool.timestamp)

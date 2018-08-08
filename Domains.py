@@ -17,7 +17,7 @@ R = 1.9858775e-3  # G in kcal/mol
 
 ##
 
-from numpy.linalg import eig,inv
+from numpy.linalg import eig, inv
 
 
 def Propagate(M, p, time):
@@ -31,7 +31,7 @@ def Propagate(M, p, time):
     E = np.real(np.dot(U, np.dot(np.exp(time*e), Uinv)))
 
     p1 = np.dot(p, E)
-    return time, p1
+    return p1
 
 
 def similar(a, b):
@@ -41,7 +41,10 @@ def similar(a, b):
 def rate(dG, k):
     return k*np.exp(-dG/(R* (273.15+Temperature)))
 
+
 def disso(x) : return x.dissociate_energy()
+
+
 def loopf(x) : return x.loop_formation_energy()
 
 

@@ -23,17 +23,12 @@ from numpy.linalg import eig,inv
 def Propagate(M, p, time):
 
     e, U = eig(M)
-    tol = 1.e-6
-    E = np.zeros( (p+1, 2, 2),dtype=float)
-    if abs(e[0]-e[1]) < tol:
-        # this is a defective matrix, which must be handled differently
-        raise UserWarning("Defective matrix not implemented")
-    else:
-        # the eigenvalues are distinct -- possibly complex, but
-        # E will always be real
-        Uinv = inv(U)
 
-        E += np.real(np.dot(U, np.dot(np.exp(time*e), Uinv)))
+    # the eigenvalues are distinct -- possibly complex, but
+    # E will always be real
+    Uinv = inv(U)
+
+    E = np.real(np.dot(U, np.dot(np.exp(time*e), Uinv)))
 
     p1 = np.dot(p, E)
     return time, p1

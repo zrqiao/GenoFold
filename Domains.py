@@ -28,7 +28,7 @@ def Propagate(M, p, time):
     # E will always be real
     Uinv = inv(U)
 
-    E = np.real(np.dot(U, np.dot(np.exp(time*e), Uinv)))
+    E = np.real(np.dot(U, np.dot(np.exp(time*np.diag(e)), Uinv)))
 
     p1 = np.dot(p, E)
     return p1

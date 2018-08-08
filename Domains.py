@@ -6,7 +6,7 @@ import operator
 from multiprocessing import Pool
 import re
 from scipy.sparse import csc_matrix
-from scipy.sparse.linalg import expm, expm_multiply
+from scipy.linalg import expm
 import copy
 import time
 
@@ -16,6 +16,27 @@ k0 = 1
 R = 1.9858775e-3  # G in kcal/mol
 
 ##
+
+from numpy.linalg import eig,inv
+
+
+def Propagate(M, p, time):
+
+    e, U = eig(M)
+    tol = 1.e-6
+    E = np.zeros( (p+1, 2, 2),dtype=float)
+    if abs(e[0]-e[1]) < tol:
+        # this is a defective matrix, which must be handled differently
+        raise UserWarning("Defective matrix not implemented")
+    else:
+        # the eigenvalues are distinct -- possibly complex, but
+        # E will always be real
+        Uinv = inv(U)
+
+        E += np.real(np.dot(U, np.dot(np.exp(time*e), Uinv)))
+
+    p1 = np.dot(p, E)
+    return time, p1
 
 
 def similar(a, b):
@@ -428,7 +449,7 @@ class SpeciesPool(object):
 
         # print(list(population_array))
         # Master Equation
-        population_array = population_array.dot(expm(time*rate_matrix))
+        population_array = Propagate(rate_matrix, population_array, time)
         self.timestamp += time
 
         # print(rate_matrix)

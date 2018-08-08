@@ -30,8 +30,8 @@ if __name__ == '__main__':
     fig.add_axes()
 
     # mpl.rcParams['axes.color_cycle'] = colors
-    mpl.rcParams['axes.titlesize'] = 20
-    mpl.rcParams['axes.titleweight'] = 15
+    mpl.rcParams['axes.titlesize'] = 10
+    mpl.rcParams['axes.titleweight'] = 10
     parser = argparse.ArgumentParser()
     parser.add_argument('sequence', type=str, help="RNA sequence (one line)")
     # parser.add_argument('--k', type=np.float, default=1., \
@@ -64,6 +64,8 @@ if __name__ == '__main__':
     ax_pbound.set_xlabel('Transcription time', fontsize=12.5)
     ax_pbound.set_ylabel(r'$p_{unbound}$', fontsize=12.5)
     # ax_pbound.set_yscale('log')
+    ax_pbound.set_xscale('log')
+    ax_pbound.set_ylim(1e-5, 1.5)
     # ax_pbound.set_ylim(0.0, 1.1)
 
     for e_k in range(5, 18, 1):
@@ -72,26 +74,29 @@ if __name__ == '__main__':
         data = defaultdict(np.float)
         with open(clargs.sequence + '_k' + '%e' % k + '.dat', 'r') as folding_input:
             f = open(clargs.sequence + '_p_unbound_%e' % k + '.dat', 'w')
-            sss = [(x.split()[0].rstrip('\n'), np.float(x.split()[1]))
-                   for x in folding_input.readlines() if not x.startswith('#')]
+            sss = [(x.split()[0], np.float(x.split()[1]))
+                   for x in folding_input.readlines()]
 
             for ss in sss:
-                # print(ss)
-                if len(ss[0]) >= SD_end:
-                    time = (len(ss[0])-L_init) * transcription_time
-                    # print('N=' + str(N) + ' nt')
-                    # f.write('#N=' + str(N) + ' nt')
-                    # sim = np.zeros(len(structure))
-                    SD_ss = ss[0][SD_start:SD_end]
+                if ss[0].startswith('#'):
+                    time = ss[1]
+                else:
+                    # print(ss)
+                    if len(ss[0]) >= SD_end:
+                        # time = (len(ss[0])-L_init) * transcription_time
+                        # print('N=' + str(N) + ' nt')
+                        # f.write('#N=' + str(N) + ' nt')
+                        # sim = np.zeros(len(structure))
+                        SD_ss = ss[0][SD_start:SD_end]
 
-                    data[time] += similar(SD_ss, '.......') * ss[1]
-                    # print(data[time])
-                    # for i in range(len(first_sequences)):
-                    #     temp_cmp = []
-                    #     for cmpseq in first_sequences:
-                    #         temp_cmp.append(similar(cmpseq, first_sequences[i]))
-                    #     sim[i + N] = np.average(np.array(temp_cmp))
-                    # print(sim)
+                        data[time] += ss[1] #* similar(SD_ss, '.......')
+                        # print(data[time])
+                        # for i in range(len(first_sequences)):
+                        #     temp_cmp = []
+                        #     for cmpseq in first_sequences:
+                        #         temp_cmp.append(similar(cmpseq, first_sequences[i]))
+                        #     sim[i + N] = np.average(np.array(temp_cmp))
+                        # print(sim)
             data_p = np.array([list(data.keys()), list(data.values())])
             # data_p.transpose()
 
@@ -101,8 +106,8 @@ if __name__ == '__main__':
         f.close()
     ax_pbound.plot(data_p[0], np.repeat(np.average(equi_p_unbound), len(data_p[0])), label='equilibrium')
     ax_pbound.legend(loc='best')
-    fig.tight_layout()
-    # plt.show()
+    # fig.tight_layout()
+    plt.show()
 
     fig.savefig(clargs.sequence + f'_p_unbound_test_k_tuning.eps')
 
@@ -124,7 +129,8 @@ if __name__ == '__main__':
         ax_pbound.set_xlabel('Transcription time', fontsize=12.5)
         ax_pbound.set_ylabel(r'$p_{unbound}$', fontsize=12.5)
         ax_pbound.set_yscale('log')
-        ax_pbound.set_ylim(1e-5, 1.5)
+        ax_pbound.set_xscale('log')
+        # ax_pbound.set_ylim(1e-5, 1.5)
 
         for e_k in range(5, 18, 1):
             k = 1 * 10 ** e_k
@@ -136,22 +142,24 @@ if __name__ == '__main__':
                        for x in folding_input.readlines() if not x.startswith('#')]
 
                 for ss in sss:
-                    # print(ss)
-                    if len(ss[0]) >= SD_end:
-                        time = (len(ss[0]) - L_init) * transcription_time
-                        # print('N=' + str(N) + ' nt')
-                        # f.write('#N=' + str(N) + ' nt')
-                        # sim = np.zeros(len(structure))
-                        SD_ss = ss[0][SD_start:SD_end]
-
-                        data[time] += similar(SD_ss[base_position], '.') * ss[1]
-                        # print(data[time])
-                        # for i in range(len(first_sequences)):
-                        #     temp_cmp = []
-                        #     for cmpseq in first_sequences:
-                        #         temp_cmp.append(similar(cmpseq, first_sequences[i]))
-                        #     sim[i + N] = np.average(np.array(temp_cmp))
-                        # print(sim)
+                    if ss[0].startswith('#'):
+                        time = ss[1]
+                    else:
+                        # print(ss)
+                        if len(ss[0]) >= SD_end:
+                            # time = (len(ss[0])-L_init) * transcription_time
+                            # print('N=' + str(N) + ' nt')
+                            # f.write('#N=' + str(N) + ' nt')
+                            # sim = np.zeros(len(structure))
+                            SD_ss = ss[0][SD_start:SD_end]
+                            data[time] += similar(SD_ss[base_position], '.') * ss[1]
+                            # print(data[time])
+                            # for i in range(len(first_sequences)):
+                            #     temp_cmp = []
+                            #     for cmpseq in first_sequences:
+                            #         temp_cmp.append(similar(cmpseq, first_sequences[i]))
+                            #     sim[i + N] = np.average(np.array(temp_cmp))
+                            # print(sim)
                 data_p = np.array([list(data.keys()), list(data.values())])
                 # data_p.transpose()
 
@@ -162,8 +170,8 @@ if __name__ == '__main__':
         ax_pbound.plot(data_p[0], np.repeat(equi_p_unbound[base_position],
                                             len(data_p[0])), label='equilibrium')
         ax_pbound.legend(loc='best')
-        fig.tight_layout()
-        # plt.show()
+        # fig.tight_layout()
+        plt.show()
 
         fig.savefig(clargs.sequence + f'_p_unbound_base[{base_gene_position}]_test_k_tuning.eps')
 exit()

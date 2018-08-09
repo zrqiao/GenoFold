@@ -20,19 +20,17 @@ R = 1.9858775e-3  # G in kcal/mol
 from numpy.linalg import eig, inv
 
 
-def Propagate(M, p, time):
-
-    e, U = eig(M)
-
+#def Propagate(M, p, time):
+    # e, U = eig(M)
     # the eigenvalues are distinct -- possibly complex, but
     # E will always be real
-    Uinv = inv(U)
+    # Uinv = inv(U)
+    # E = np.real(np.dot(U, np.dot(np.exp(time*np.diag(e)), Uinv)))
+    # p1 = np.dot(p, E)
+    # return p1
 
-    E = np.real(np.dot(U, np.dot(np.exp(time*np.diag(e)), Uinv)))
-
-    p1 = np.dot(p, E)
-    return p1
-
+def Propagate(M, p, time):
+    return np.dot(p, expm(time*M))
 
 def similar(a, b):
     return SequenceMatcher(None, a, b).ratio()

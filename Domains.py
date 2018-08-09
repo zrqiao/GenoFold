@@ -6,7 +6,7 @@ import operator
 from multiprocessing import Pool
 import re
 from scipy.sparse import csc_matrix
-from scipy.sparse.linalg import expm, expm_multiply
+from scipy.linalg import expm
 import copy
 import time
 
@@ -17,6 +17,20 @@ R = 1.9858775e-3  # G in kcal/mol
 
 ##
 
+from numpy.linalg import eig, inv
+
+
+#def Propagate(M, p, time):
+    # e, U = eig(M)
+    # the eigenvalues are distinct -- possibly complex, but
+    # E will always be real
+    # Uinv = inv(U)
+    # E = np.real(np.dot(U, np.dot(np.exp(time*np.diag(e)), Uinv)))
+    # p1 = np.dot(p, E)
+    # return p1
+
+def Propagate(M, p, time):
+    return np.dot(p, expm(time*M))
 
 def similar(a, b):
     return SequenceMatcher(None, a, b).ratio()
@@ -25,7 +39,10 @@ def similar(a, b):
 def rate(dG, k):
     return k*np.exp(-dG/(R* (273.15+Temperature)))
 
+
 def disso(x) : return x.dissociate_energy()
+
+
 def loopf(x) : return x.loop_formation_energy()
 
 
@@ -428,7 +445,7 @@ class SpeciesPool(object):
 
         # print(list(population_array))
         # Master Equation
-        population_array = population_array.dot(expm(time*rate_matrix))
+        population_array = Propagate(rate_matrix, population_array, time)
         self.timestamp += time
 
         # print(rate_matrix)

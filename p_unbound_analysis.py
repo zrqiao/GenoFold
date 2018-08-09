@@ -50,7 +50,7 @@ if __name__ == '__main__':
     fig = plt.figure(figsize=(8, 6))
     fig.add_axes()
     # gs = gridspec.GridSpec(1, 1, height_ratios=[1])
-    NUM_COLORS = 13
+    NUM_COLORS = 14
     #ax_energy = fig.add_subplot(gs[0, 0])
     #ax_energy.set_title('Free Energy')
     # ax_energy.set_xlabel('Subsequence Length', fontsize=12.5)
@@ -63,17 +63,18 @@ if __name__ == '__main__':
     ax_pbound.set_title(f'Average p_unbound of SD sequence {clargs.sequence}')
     ax_pbound.set_xlabel('Transcription time', fontsize=12.5)
     ax_pbound.set_ylabel(r'$p_{unbound}$', fontsize=12.5)
-    # ax_pbound.set_yscale('log')
+    ax_pbound.set_yscale('log')
     ax_pbound.set_xscale('log')
     ax_pbound.set_ylim(1e-5, 1.5)
     # ax_pbound.set_ylim(0.0, 1.1)
 
-    for e_k in range(5, 18, 1):
+    for e_k in range(5, 19, 1):
         k = 1*10**e_k
         print(f'k= {k}')
         data = defaultdict(np.float)
-        with open(clargs.sequence + '_k' + '%e' % k + '.dat', 'r') as folding_input:
-            f = open(clargs.sequence + '_p_unbound_%e' % k + '.dat', 'w')
+        f = open(clargs.sequence + '_p_unbound_%e' % k + '.dat', 'w')
+        with open(clargs.sequence + '_k' + '%e' % k + '.dat', 'r+') as folding_input:
+
             sss = [(x.split()[0], np.float(x.split()[1]))
                    for x in folding_input.readlines()]
 
@@ -89,7 +90,7 @@ if __name__ == '__main__':
                         # sim = np.zeros(len(structure))
                         SD_ss = ss[0][SD_start:SD_end]
 
-                        data[time] += ss[1] #* similar(SD_ss, '.......')
+                        data[time] += ss[1] * similar(SD_ss, '.......')
                         # print(data[time])
                         # for i in range(len(first_sequences)):
                         #     temp_cmp = []
@@ -99,6 +100,7 @@ if __name__ == '__main__':
                         # print(sim)
             data_p = np.array([list(data.keys()), list(data.values())])
             # data_p.transpose()
+            # folding_input.close()
 
         ax_pbound.plot(data_p[0], data_p[1], label='k=' + '%.2g' % k + r'$s^{-1}$')
         for d in data.items():
@@ -109,6 +111,7 @@ if __name__ == '__main__':
     # fig.tight_layout()
     plt.show()
 
+
     fig.savefig(clargs.sequence + f'_p_unbound_test_k_tuning.eps')
 
     for base_position in range(0, 7):
@@ -116,7 +119,7 @@ if __name__ == '__main__':
         fig = plt.figure(figsize=(8, 6))
         fig.add_axes()
         # gs = gridspec.GridSpec(1, 1, height_ratios=[1])
-        NUM_COLORS = 13
+        # NUM_COLORS = 13
         # ax_energy = fig.add_subplot(gs[0, 0])
         # ax_energy.set_title('Free Energy')
         # ax_energy.set_xlabel('Subsequence Length', fontsize=12.5)
@@ -132,27 +135,27 @@ if __name__ == '__main__':
         ax_pbound.set_xscale('log')
         # ax_pbound.set_ylim(1e-5, 1.5)
 
-        for e_k in range(5, 18, 1):
+        for e_k in range(5, 19, 1):
             k = 1 * 10 ** e_k
             print(f'k= {k}')
             data = defaultdict(np.float)
-            with open(clargs.sequence + '_k' + '%e' % k + '.dat', 'r') as folding_input:
-                f = open(clargs.sequence + '_p_unbound_%e' % k + '.dat', 'w')
+            f = open(clargs.sequence + '_p_unbound_%e' % k + '.dat', 'w')
+            with open(clargs.sequence + '_k' + '%e' % k + '.dat', 'r+') as folding_input:
                 sss = [(x.split()[0].rstrip('\n'), np.float(x.split()[1]))
-                       for x in folding_input.readlines() if not x.startswith('#')]
+                       for x in folding_input.readlines()]
 
                 for ss in sss:
                     if ss[0].startswith('#'):
                         time = ss[1]
                     else:
-                        # print(ss)
+                        # print(time)
                         if len(ss[0]) >= SD_end:
                             # time = (len(ss[0])-L_init) * transcription_time
                             # print('N=' + str(N) + ' nt')
                             # f.write('#N=' + str(N) + ' nt')
                             # sim = np.zeros(len(structure))
                             SD_ss = ss[0][SD_start:SD_end]
-                            data[time] += similar(SD_ss[base_position], '.') * ss[1]
+                            data[time] += ss[1] * similar(SD_ss[base_position], '.')
                             # print(data[time])
                             # for i in range(len(first_sequences)):
                             #     temp_cmp = []
@@ -162,7 +165,7 @@ if __name__ == '__main__':
                             # print(sim)
                 data_p = np.array([list(data.keys()), list(data.values())])
                 # data_p.transpose()
-
+            # print(data_p)
             ax_pbound.plot(data_p[0], data_p[1], label='k=' + '%.2g' % k + r'$s^{-1}$')
             for d in data.items():
                 f.write(f'{d[0]}  {d[1]}\n')

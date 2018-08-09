@@ -23,13 +23,13 @@ from numpy.linalg import eig, inv
 def Propagate(M, p, time):
 
     e, U = eig(M)
-
+    # print(e)
     # the eigenvalues are distinct -- possibly complex, but
     # E will always be real
     Uinv = inv(U)
-
-    E = np.real(np.dot(U, np.dot(np.exp(time*np.diag(e)), Uinv)))
-
+    # print(np.exp(time*np.diag(e)))
+    E = np.real(np.dot(np.dot(U, np.diag(np.exp(time*e))), Uinv))
+    # print(E)
     p1 = np.dot(p, E)
     return p1
 
@@ -40,7 +40,7 @@ def similar(a, b):
 
 def rate(dG, k):
     return k*np.exp(-dG/(R* (273.15+Temperature)))
-
+    # return k
 
 def disso(x) : return x.dissociate_energy()
 
@@ -385,7 +385,7 @@ class Pathways(object):     #  Indices of a pathway should be two domain(for rob
             backward_rate = rate(backward_energy, k)
 
             # print(time2-time1)
-            
+            # print(backward_energy)
             # newforwardpathway = pathway(my_site,other_site, forward_rate)
             # newbackwardpathway = pathway(other_site,my_site, backward_rate)
             self.add(my_site, other_site, forward_rate)

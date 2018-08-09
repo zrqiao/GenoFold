@@ -10,11 +10,11 @@ import copy
 import time
 
 # Change following routines for other environments:
-L_init = 20  # Initiation unit
-dL = 20  # elongation unit (also means CG unit)
+L_init = 50  # Initiation unit
+dL = 50  # elongation unit (also means CG unit)
 transcription_time = 0.1
 dt = transcription_time * dL  # Folding time for each elongation step (0.1 s/nt)
-population_size_limit = 100  # maximum type of strands in the pool
+population_size_limit = 200  # maximum type of strands in the pool
 MULTI_PROCESS = 32
 
 if __name__ == '__main__':
@@ -130,7 +130,7 @@ if __name__ == '__main__':
     # Post-transcriptional folding
 
     time_limit = 100000
-    dt_pt = 100
+    dt_pt = 10
 
     while time_limit > active_species_pool.timestamp:
         step += 1

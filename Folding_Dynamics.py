@@ -10,9 +10,9 @@ import copy
 import time
 
 # Change following routines for other environments:
-L_init = 1  # Initiation unit
-dL = 10  # elongation unit (also means CG unit)
-ddt = 0.1  # differential time step
+L_init = 100  # Initiation unit
+dL = 100  # elongation unit (also means CG unit)
+ddt = 10  # differential time step
 transcription_time = 1
 dt = transcription_time * dL  # Folding time for each elongation step (0.1 s/nt)
 population_size_limit = 50  # maximum type of strands in the pool

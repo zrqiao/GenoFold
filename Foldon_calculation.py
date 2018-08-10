@@ -41,7 +41,7 @@ def nupack_mfe(sequence, T=37):
 
 
 def save_foldon(l_bound, r_bound, ss, f):
-    f.write(f'{l_bound} {r_bound} {ss}')
+    f.write(f'{l_bound} {r_bound} {ss} \n')
     return True
 
 
@@ -68,8 +68,8 @@ if __name__ == '__main__':
 
         multi_pool.close()
         multi_pool.join()
-
+        print(new_foldons_ss)
         for i in range(len(l_bounds)):
             save_foldon(l_bounds[i], current_length, new_foldons_ss[i], foldons)
-
+    foldons.close()
     exit()

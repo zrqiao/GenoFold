@@ -37,7 +37,7 @@ def Propagate(M, p, time):
 
 
 def Propagate(M, p, time, ddt=1):
-    return expm_multiply(M.transpose(), p, ddt, time, time/ddt)
+    return expm_multiply(M.transpose(), p, 0, time, time/ddt)
     # return np.dot(p, expm(time*M))
 
 

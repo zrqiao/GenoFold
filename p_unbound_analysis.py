@@ -50,7 +50,7 @@ if __name__ == '__main__':
     fig = plt.figure(figsize=(8, 6))
     fig.add_axes()
     # gs = gridspec.GridSpec(1, 1, height_ratios=[1])
-    NUM_COLORS = 14
+    NUM_COLORS = 7
     #ax_energy = fig.add_subplot(gs[0, 0])
     #ax_energy.set_title('Free Energy')
     # ax_energy.set_xlabel('Subsequence Length', fontsize=12.5)
@@ -63,12 +63,12 @@ if __name__ == '__main__':
     ax_pbound.set_title(f'Average p_unbound of SD sequence {clargs.sequence}')
     ax_pbound.set_xlabel('Transcription time', fontsize=12.5)
     ax_pbound.set_ylabel(r'$p_{unbound}$', fontsize=12.5)
-    ax_pbound.set_yscale('log')
-    ax_pbound.set_xscale('log')
+    # ax_pbound.set_yscale('log')
+    # ax_pbound.set_xscale('log')
     # ax_pbound.set_ylim(1e-5, 1.5)
     # ax_pbound.set_ylim(0.0, 1.1)
 
-    for e_k in range(5, 19, 1):
+    for e_k in range(1, 15, 2):
         k = 1*10**e_k
         print(f'k= {k}')
         data = defaultdict(np.float)
@@ -111,7 +111,6 @@ if __name__ == '__main__':
     # fig.tight_layout()
     plt.show()
 
-
     fig.savefig(clargs.sequence + f'_p_unbound_test_k_tuning.eps')
 
     for base_position in range(0, 7):
@@ -132,10 +131,10 @@ if __name__ == '__main__':
         ax_pbound.set_xlabel('Transcription time', fontsize=12.5)
         ax_pbound.set_ylabel(r'$p_{unbound}$', fontsize=12.5)
         ax_pbound.set_yscale('log')
-        ax_pbound.set_xscale('log')
-        # ax_pbound.set_ylim(1e-5, 1.5)
+        # ax_pbound.set_xscale('log')
+        ax_pbound.set_ylim(1e-4, 1.5)
 
-        for e_k in range(5, 19, 1):
+        for e_k in range(1, 15, 2):
             k = 1 * 10 ** e_k
             print(f'k= {k}')
             data = defaultdict(np.float)

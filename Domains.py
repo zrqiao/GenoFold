@@ -5,7 +5,7 @@ from collections import defaultdict
 import operator
 from multiprocessing import Pool
 import re
-from scipy.sparse import csc_matrix
+from scipy.sparse.linalg import expm_multiply
 from scipy.linalg import expm
 import copy
 import time
@@ -34,9 +34,12 @@ def Propagate(M, p, time):
     p1 = np.dot(p, E)
     return p1
 '''
-  
-def Propagate(M, p, time):
-    return np.dot(p, expm(time*M))
+
+
+def Propagate(M, p, time, ddt=1):
+    return expm_multiply(M.transpose(), p, ddt, time, time/ddt)
+    # return np.dot(p, expm(time*M))
+
 
 def similar(a, b):
     return SequenceMatcher(None, a, b).ratio()
@@ -95,9 +98,10 @@ class FoldonCollection(object):
             print("Error: no such foldon")
             return False
 
-    def new_foldon(self, sequence, l_bound, r_bound, domain_collection):  # foldon_collection is a DomainCollection
-        mfe = nupack_functions.nupack_mfe(sequence, Temperature)
-        new_foldon = domain_collection.get_domain(sequence, mfe, l_bound, r_bound)  # TODO: degeneracy
+    def new_foldon(self, sequence, l_bound, r_bound, domain_collection, ss=None):  # foldon_collection is a DomainCollection
+        if not ss:
+            ss = nupack_functions.nupack_mfe(sequence, Temperature)  # TODO: degeneracy
+        new_foldon = domain_collection.get_domain(sequence, ss, l_bound, r_bound)
         new_foldon.foldonize()
         if new_foldon not in self.collection[l_bound, r_bound]:
             self.add_foldon(new_foldon)  # Don't forget to modify
@@ -437,7 +441,7 @@ class SpeciesPool(object):
         self.species[domain] = population
         return self
 
-    def evolution(self, pathways, time):
+    def evolution(self, pathways, time, ddt):
         # print(self.size)
         rate_matrix = np.zeros((self.size, self.size))
         species_list = list(self.species.items())
@@ -451,7 +455,9 @@ class SpeciesPool(object):
 
         # print(list(population_array))
         # Master Equation
-        population_array = Propagate(rate_matrix, population_array, time)
+        intermediate_population_arrays = Propagate(rate_matrix, population_array, time, ddt=ddt)
+        time_array = np.arange(self.timestamp+ddt, self.timestamp+time+ddt, ddt)
+        population_array = intermediate_population_arrays[-1]
         self.timestamp += time
 
         # print(rate_matrix)
@@ -461,7 +467,7 @@ class SpeciesPool(object):
         for i in range(self.size):
             self.update_population(species_list[i][0], population_array[i])
 
-        return self
+        return species_list, intermediate_population_arrays, time_array
 
     def selection(self, size_limit):
         if self.size > size_limit:

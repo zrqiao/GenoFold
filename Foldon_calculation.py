@@ -71,5 +71,7 @@ if __name__ == '__main__':
         print(new_foldons_ss)
         for i in range(len(l_bounds)):
             save_foldon(l_bounds[i], current_length, new_foldons_ss[i], foldons)
+        foldons.flush()
+
     foldons.close()
     exit()

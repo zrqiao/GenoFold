@@ -14,6 +14,7 @@ import time
 Temperature = 37
 k0 = 1
 R = 1.9858775e-3  # G in kcal/mol
+rate_cutoff = 1e-15  # minimum allowed rate constant
 
 ##
 
@@ -451,6 +452,13 @@ class SpeciesPool(object):
             population_array[i] = species_list[i][1]
             for j in range(self.size):
                 rate_matrix[i][j] = pathways.get_rate(species_list[i][0], species_list[j][0])
+
+        k_fastest = np.max(rate_matrix)
+
+        for i in range(self.size):  # Make it a REAL sparse matrix
+            for j in range(self.size):
+                if rate_matrix[i][j] < k_fastest * rate_cutoff:
+                    rate_matrix[i][j] = 0
             rate_matrix[i][i] = -np.sum(rate_matrix[i])
 
         # print(list(population_array))
@@ -460,7 +468,7 @@ class SpeciesPool(object):
         population_array = intermediate_population_arrays[-1]
         self.timestamp += time
 
-        # print(rate_matrix)
+        print(rate_matrix)
         # print(population_array)
 
         # Remapping

@@ -65,7 +65,7 @@ if __name__ == '__main__':
     ax_pbound.set_ylabel(r'$p_{unbound}$', fontsize=12.5)
     ax_pbound.set_yscale('log')
     ax_pbound.set_xscale('log')
-    ax_pbound.set_ylim(1e-5, 1.5)
+    # ax_pbound.set_ylim(1e-5, 1.5)
     # ax_pbound.set_ylim(0.0, 1.1)
 
     for e_k in range(5, 19, 1):

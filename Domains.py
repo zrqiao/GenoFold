@@ -37,7 +37,7 @@ def Propagate(M, p, time):
 
 
 def Propagate(M, p, time, ddt=1):
-    return expm_multiply(M.transpose(), p, 0, time, time/ddt)
+    return expm_multiply(M.transpose(), p, ddt, time, time/ddt, True)
     # return np.dot(p, expm(time*M))
 
 
@@ -456,7 +456,7 @@ class SpeciesPool(object):
         # print(list(population_array))
         # Master Equation
         intermediate_population_arrays = Propagate(rate_matrix, population_array, time, ddt=ddt)
-        time_array = np.arange(self.timestamp+ddt, self.timestamp+time+ddt, ddt)
+        time_array = np.arange(0, time, ddt) +self.timestamp +ddt
         population_array = intermediate_population_arrays[-1]
         self.timestamp += time
 

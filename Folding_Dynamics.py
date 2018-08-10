@@ -10,11 +10,11 @@ import copy
 import time
 
 # Change following routines for other environments:
-L_init = 50  # Initiation unit
-dL = 50  # elongation unit (also means CG unit)
-transcription_time = 0.1
+L_init = 10  # Initiation unit
+dL = 10  # elongation unit (also means CG unit)
+transcription_time = 1
 dt = transcription_time * dL  # Folding time for each elongation step (0.1 s/nt)
-population_size_limit = 200  # maximum type of strands in the pool
+population_size_limit = 50  # maximum type of strands in the pool
 MULTI_PROCESS = 32
 
 if __name__ == '__main__':

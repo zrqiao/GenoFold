@@ -10,10 +10,10 @@ sequence=ATACCCGTTTTTTGGGCTAACAGGAGGAATTACATATGATCAGTCTGATTGCGGCGTTAGCGGTAGATCGC
 
 module load python
 
-for ((i=5;i<=18;i=i+1))
+for ((i=1;i<=30;i=i+2))
 do
     echo -e "\033[44;37;5m Simulating with k= $i"
-    nohup python Folding_Dynamics.py --k 1e$i folA_WT/debugging/RNA &
+    python Folding_Dynamics.py --k 1e$i folA_WT/debugging/RNA &
 done
 
 # monitor output (need formatted string)

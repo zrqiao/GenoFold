@@ -473,7 +473,10 @@ class SpeciesPool(object):
         time_array = np.arange(0, dt, ddt) + self.timestamp + ddt
 
         if stationary:
-            intermediate_population_arrays = [np.linalg.solve(rate_matrix.transpose(), np.zeros(self.size))
+            if self.size == 1:
+                intermediate_population_arrays = [np.array([1]) for t in time_array]
+            else: 
+                intermediate_population_arrays = [np.linalg.solve(rate_matrix.transpose(), np.zeros(self.size))
                                               for t in time_array]
 
             return species_list, intermediate_population_arrays, time_array

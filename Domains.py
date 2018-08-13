@@ -14,7 +14,7 @@ import time
 Temperature = 37
 k0 = 1
 R = 1.9858775e-3  # G in kcal/mol
-rate_cutoff = 1e-15  # minimum allowed rate constant
+rate_cutoff = 1e-20  # minimum allowed rate constant
 
 ##
 
@@ -37,8 +37,15 @@ def Propagate(M, p, time):
 '''
 
 
-def Propagate(M, p, time, ddt=1):
-    return expm_multiply(M.transpose(), p, ddt, time, time/ddt, True)
+def Propagate(M, p, dt, ddt=1):
+    time_1=time.time()
+    # time_series = np.arange(0, dt, ddt) + dt
+    if dt>ddt: 
+        intermediate_populations = expm_multiply(M.transpose(), p, ddt, dt, dt/ddt, True)
+    elif dt == ddt: 
+        intermediate_populations = [np.dot(expm(dt*M.transpose()), p)]
+    # print(time.time()-time_1)
+    return intermediate_populations
     # return np.dot(p, expm(time*M))
 
 
@@ -442,7 +449,7 @@ class SpeciesPool(object):
         self.species[domain] = population
         return self
 
-    def evolution(self, pathways, time, ddt):
+    def evolution(self, pathways, dt, ddt):
         # print(self.size)
         rate_matrix = np.zeros((self.size, self.size))
         species_list = list(self.species.items())
@@ -463,12 +470,15 @@ class SpeciesPool(object):
 
         # print(list(population_array))
         # Master Equation
-        intermediate_population_arrays = Propagate(rate_matrix, population_array, time, ddt=ddt)
-        time_array = np.arange(0, time, ddt) +self.timestamp +ddt
+        time_1 = time.time()
+        intermediate_population_arrays = Propagate(rate_matrix, population_array, dt, ddt=ddt)
+        time_2 = time.time()
+        # print(time_2-time_1)
+        time_array = np.arange(0, dt, ddt) +self.timestamp +ddt
         population_array = intermediate_population_arrays[-1]
-        self.timestamp += time
+        self.timestamp += dt
 
-        print(rate_matrix)
+        # print(rate_matrix)
         # print(population_array)
 
         # Remapping

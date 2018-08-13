@@ -449,7 +449,7 @@ class SpeciesPool(object):
         self.species[domain] = population
         return self
 
-    def evolution(self, pathways, dt, ddt):
+    def evolution(self, pathways, dt, ddt, stationary=False):
         # print(self.size)
         rate_matrix = np.zeros((self.size, self.size))
         species_list = list(self.species.items())
@@ -461,6 +461,14 @@ class SpeciesPool(object):
                 rate_matrix[i][j] = pathways.get_rate(species_list[i][0], species_list[j][0])
 
         k_fastest = np.max(rate_matrix)
+
+        time_array = np.arange(0, dt, ddt) + self.timestamp + ddt
+
+        if stationary:
+            intermediate_population_arrays = [np.linalg.solve(rate_matrix.transpose(), np.zeros(self.size))
+                                              for t in time_array]
+
+            return species_list, intermediate_population_arrays, time_array
 
         for i in range(self.size):  # Make it a REAL sparse matrix
             for j in range(self.size):
@@ -474,7 +482,7 @@ class SpeciesPool(object):
         intermediate_population_arrays = Propagate(rate_matrix, population_array, dt, ddt=ddt)
         time_2 = time.time()
         # print(time_2-time_1)
-        time_array = np.arange(0, dt, ddt) +self.timestamp +ddt
+
         population_array = intermediate_population_arrays[-1]
         self.timestamp += dt
 

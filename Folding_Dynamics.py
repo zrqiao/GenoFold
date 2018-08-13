@@ -25,6 +25,7 @@ if __name__ == '__main__':
     parser.add_argument('--k', type=np.float, default=1., \
                         help="pre exponential factor")
     parser.add_argument('--path', type=str, default=None, help="path to store foldons")
+    parser.add_argument('--stationary', action='store_true', help="save length/time only [False]")
     clargs = parser.parse_args()
     with open(clargs.sequence + '.in', 'r') as sequence_file:
         full_sequence = sequence_file.readline().rstrip('\n')

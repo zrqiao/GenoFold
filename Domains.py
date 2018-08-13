@@ -468,12 +468,14 @@ class SpeciesPool(object):
             population_array[i] = species_list[i][1]
             for j in range(self.size):
                 rate_matrix[i][j] = pathways.get_rate(species_list[i][0], species_list[j][0])
+            rate_matrix[i][i] = -np.sum(rate_matrix[i])
 
         k_fastest = np.max(rate_matrix)
 
         time_array = np.arange(0, dt, ddt) + self.timestamp + ddt
 
         if stationary:
+            print(rate_matrix)
             if self.size == 1:
                 intermediate_population_arrays = [np.array([1]) for t in time_array]
             else: 

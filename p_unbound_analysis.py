@@ -50,7 +50,7 @@ if __name__ == '__main__':
     fig = plt.figure(figsize=(8, 6))
     fig.add_axes()
     # gs = gridspec.GridSpec(1, 1, height_ratios=[1])
-    NUM_COLORS = 7
+    NUM_COLORS = 17
     #ax_energy = fig.add_subplot(gs[0, 0])
     #ax_energy.set_title('Free Energy')
     # ax_energy.set_xlabel('Subsequence Length', fontsize=12.5)
@@ -68,7 +68,7 @@ if __name__ == '__main__':
     # ax_pbound.set_ylim(1e-5, 1.5)
     # ax_pbound.set_ylim(0.0, 1.1)
 
-    for e_k in range(1, 15, 2):
+    for e_k in range(1, 17, 1):
         k = 1*10**e_k
         print(f'k= {k}')
         data = defaultdict(np.float)
@@ -90,7 +90,7 @@ if __name__ == '__main__':
                         # sim = np.zeros(len(structure))
                         SD_ss = ss[0][SD_start:SD_end]
 
-                        data[time] += ss[1] * similar(SD_ss, '.......')
+                        data[time] += ss[1]  # * similar(SD_ss, '.......')
                         # print(data[time])
                         # for i in range(len(first_sequences)):
                         #     temp_cmp = []
@@ -111,7 +111,7 @@ if __name__ == '__main__':
     # fig.tight_layout()
     plt.show()
 
-    fig.savefig(clargs.sequence + f'_p_unbound_test_k_tuning.eps')
+    fig.savefig(clargs.sequence + f'_p_unbound_test_k_tuning_normalization_test.eps')
 
     for base_position in range(0, 7):
         base_gene_position = base_position-14

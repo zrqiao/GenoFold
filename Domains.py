@@ -471,7 +471,7 @@ class SpeciesPool(object):
             rate_matrix[i][i] = -np.sum(rate_matrix[i])
 
         k_fastest = np.max(rate_matrix)
-
+        self.timestamp += dt
         time_array = np.arange(0, dt, ddt) + self.timestamp + ddt
 
         if stationary:
@@ -494,7 +494,7 @@ class SpeciesPool(object):
         # print(time_2-time_1)
 
         population_array = intermediate_population_arrays[-1]
-        self.timestamp += dt
+
 
         # print(rate_matrix)
         # print(population_array)

@@ -40,7 +40,7 @@ def Propagate(M, p, time):
 def Propagate(M, p, dt, ddt=1):
     time_1=time.time()
     # time_series = np.arange(0, dt, ddt) + dt
-    if dt>ddt: 
+    if dt > ddt:
         # intermediate_populations = expm_multiply(M.transpose(), p, ddt, dt, dt/ddt, True)
         # intermediate_populations = np.zeros((dt/ddt, len(p), len(p)))
         times = np.arange(0, dt, ddt) + ddt
@@ -48,6 +48,10 @@ def Propagate(M, p, dt, ddt=1):
         
     elif dt == ddt: 
         intermediate_populations = [np.dot(expm(dt*M.transpose()), p)]
+
+    else:
+        print('Invalid differential time step')
+        return False
     # print(time.time()-time_1)
     return intermediate_populations
     # return np.dot(p, expm(time*M))

@@ -90,7 +90,7 @@ if __name__ == '__main__':
                         # sim = np.zeros(len(structure))
                         SD_ss = ss[0][SD_start:SD_end]
 
-                        data[time] += ss[1]  # * similar(SD_ss, '.......')
+                        data[time] += ss[1] * similar(SD_ss, '.......')
                         # print(data[time])
                         # for i in range(len(first_sequences)):
                         #     temp_cmp = []

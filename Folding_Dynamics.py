@@ -12,10 +12,10 @@ import time
 # Change following routines for other environments:
 L_init = 1  # Initiation unit
 dL = 1  # elongation unit (also means CG unit)
-ddt = 1  # differential time step
+ddt = 0.1  # differential time step
 transcription_time = 1
 dt = transcription_time * dL  # Folding time for each elongation step (0.1 s/nt)
-population_size_limit = 50  # maximum type of strands in the pool
+population_size_limit = 100  # maximum type of strands in the pool
 MULTI_PROCESS = 32
 
 if __name__ == '__main__':
@@ -41,7 +41,7 @@ if __name__ == '__main__':
     if clargs.path:
         with open(clargs.path, 'r+') as foldons_data:
             for line in foldons_data.readlines():
-                print(line)
+                # print(line)
                 lb_str, rb_str, ss = line.rstrip('\n').split()
                 lb, rb = int(lb_str), int(rb_str)
                 all_foldons.new_foldon(full_sequence[lb:rb], lb, rb, all_domains, ss=ss)
@@ -148,7 +148,7 @@ if __name__ == '__main__':
     # Post-transcriptional folding
 
     time_limit = 100000
-
+    dtt = 10
     step += 1
     # print('Step: %3d \n'%step)
     log.write('Post-transcriptional folding:\n')

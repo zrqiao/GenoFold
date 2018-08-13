@@ -41,7 +41,11 @@ def Propagate(M, p, dt, ddt=1):
     time_1=time.time()
     # time_series = np.arange(0, dt, ddt) + dt
     if dt>ddt: 
-        intermediate_populations = expm_multiply(M.transpose(), p, ddt, dt, dt/ddt, True)
+        # intermediate_populations = expm_multiply(M.transpose(), p, ddt, dt, dt/ddt, True)
+        # intermediate_populations = np.zeros((dt/ddt, len(p), len(p)))
+        times = np.arange(0, dt, ddt) + ddt
+        intermediate_populations = [np.dot(expm(t*M.transpose()), p) for t in times]
+        
     elif dt == ddt: 
         intermediate_populations = [np.dot(expm(dt*M.transpose()), p)]
     # print(time.time()-time_1)

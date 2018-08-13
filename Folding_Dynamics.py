@@ -10,9 +10,9 @@ import copy
 import time
 
 # Change following routines for other environments:
-L_init = 100  # Initiation unit
-dL = 100  # elongation unit (also means CG unit)
-ddt = 10  # differential time step
+L_init = 1  # Initiation unit
+dL = 1  # elongation unit (also means CG unit)
+ddt = 1  # differential time step
 transcription_time = 1
 dt = transcription_time * dL  # Folding time for each elongation step (0.1 s/nt)
 population_size_limit = 50  # maximum type of strands in the pool
@@ -34,14 +34,18 @@ if __name__ == '__main__':
     all_foldons = Domains.FoldonCollection()
     all_pathways = Domains.Pathways(clargs.k)
     active_species_pool = Domains.SpeciesPool(all_pathways)
-
+    log = open(clargs.sequence + '_k' + '%e' % clargs.k + '.log', 'w+')
+    log.write('Initializing...')
+    log.flush()
     if clargs.path:
         with open(clargs.path, 'r+') as foldons_data:
             for line in foldons_data.readlines():
+                print(line)
                 lb_str, rb_str, ss = line.rstrip('\n').split()
                 lb, rb = int(lb_str), int(rb_str)
-                all_foldons.new_foldon(full_sequence[lb:rb], lb, rb, ss)
-
+                all_foldons.new_foldon(full_sequence[lb:rb], lb, rb, all_domains, ss=ss)
+    log.write('finished\n')
+    log.flush()
     # NOTE: Initiate transcription
     init_segment = full_sequence[:L_init]
     init_foldon = all_foldons.new_foldon(init_segment, 0, L_init, all_domains)
@@ -53,12 +57,11 @@ if __name__ == '__main__':
 
     # Start IO
     checkpoint_pool = gzip.open(clargs.sequence + '_k' + '%e' % clargs.k + '_pool.p.gz', 'w')
-    pickle.dump(active_species_pool, checkpoint_pool)
+    # pickle.dump(active_species_pool, checkpoint_pool)
     structure_output = open(clargs.sequence + '_k' + '%e' % clargs.k + '.dat', 'w+')
     structure_output.write("#Time %g\n" % (dt * step))
     for domain in active_species_pool.species_list():
         structure_output.write('%s    %g\n' % (domain, active_species_pool.get_population(domain)))
-    log = open(clargs.sequence + '_k' + '%e' % clargs.k + '.log', 'w+')
     log.write('Step: %3d \n' % step)
     log.flush()
     while sequence_length > current_length:
@@ -123,7 +126,7 @@ if __name__ == '__main__':
         log.write('Selection finished \n')
         # pickle & outputs
         # with gzip.open(clargs.sequence + '_pool.p.gz', 'a') as checkpoint_pool:
-        pickle.dump(active_species_pool, checkpoint_pool)
+        # pickle.dump(active_species_pool, checkpoint_pool)
         # with open(clargs.sequence + '.dat', 'a') as structure_output:
         for time_index in range(len(time_array)):
             structure_output.write("#Time %g\n" % time_array[time_index])

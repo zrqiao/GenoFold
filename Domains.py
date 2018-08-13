@@ -9,6 +9,7 @@ from scipy.sparse.linalg import expm_multiply
 from scipy.linalg import expm
 import copy
 import time
+from sklearn import preprocessing
 
 #Change following routines for other environments:
 Temperature = 37
@@ -476,8 +477,10 @@ class SpeciesPool(object):
             if self.size == 1:
                 intermediate_population_arrays = [np.array([1]) for t in time_array]
             else: 
-                intermediate_population_arrays = [np.linalg.solve(rate_matrix.transpose(), np.zeros(self.size))
-                                              for t in time_array]
+                intermediate_population_arrays = \
+                    preprocessing.normalize([np.linalg.solve(rate_matrix.transpose(),
+                                                             np.zeros(self.size))
+                                             for t in time_array], norm='l2')
 
             return species_list, intermediate_population_arrays, time_array
 

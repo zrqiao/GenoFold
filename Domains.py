@@ -475,15 +475,9 @@ class SpeciesPool(object):
         time_array = np.arange(0, dt, ddt) + self.timestamp + ddt
 
         if stationary:
-            print(rate_matrix)
-            if self.size == 1:
-                intermediate_population_arrays = [np.array([1]) for t in time_array]
-            else: 
-                intermediate_population_arrays = \
-                    preprocessing.normalize([np.linalg.solve(rate_matrix.transpose(),
-                                                             np.zeros(self.size))
-                                             for t in time_array], norm='l2')
-
+            intermediate_population_arrays = \
+                preprocessing.normalize([[rate(species[0].get_G(), 1) for species in species_list]
+                                        for t in time_array], norm='l2')
             return species_list, intermediate_population_arrays, time_array
 
         for i in range(self.size):  # Make it a REAL sparse matrix

@@ -21,11 +21,16 @@ MULTI_PROCESS = 32
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('sequence', type=str, help="RNA sequence (one line)")
+    parser.add_argument('sequence', type=str, help="RNA sequence prefix (one line)")
     parser.add_argument('--k', type=np.float, default=1., \
                         help="pre exponential factor")
-    parser.add_argument('--path', type=str, default=None, help="path to store foldons")
-    parser.add_argument('--stationary', action='store_true', help="save length/time only [False]")
+    parser.add_argument('--path', type=str, default=None, help="Path to store foldons")
+    parser.add_argument('--stationary', action='store_true', help="Only calculate equilibrium distribution [False]")
+    parser.add_argument('--post', action='store_true', help="Continue calculation after transcription")
+    parser.add_argument('--CG-length', type=int, default=dL, help="coarse grained unit")
+    parser.add_argument('--pool-size', type=int, default=population_size_limit, help="Active pool limit")
+    parser.add_argument('--chk', action='store_true', help="Save checkpoint files")
+
     clargs = parser.parse_args()
     if not clargs.stationary:
         prefix = clargs.sequence + '_k' + '%e' % clargs.k
@@ -41,7 +46,7 @@ if __name__ == '__main__':
     all_pathways = Domains.Pathways(clargs.k)
     active_species_pool = Domains.SpeciesPool(all_pathways)
     log = open(prefix + '.log', 'w+')
-    log.write('Initializing...')
+    log.write('Initializing structure building block collections...')
     log.flush()
     if clargs.path:
         with open(clargs.path, 'r+') as foldons_data:
@@ -62,14 +67,17 @@ if __name__ == '__main__':
     # print('Population size: '+str(active_species_pool.size))
 
     # Start IO
-    checkpoint_pool = gzip.open(prefix + '_pool.p.gz', 'w')
-    # pickle.dump(active_species_pool, checkpoint_pool)  # I/O intensive
+    if clargs.chk:
+        checkpoint_pool = gzip.open(prefix + '_pool.p.gz', 'w')
+        pickle.dump(active_species_pool, checkpoint_pool)  # I/O intensive
     structure_output = open(prefix + '.dat', 'w+')
     structure_output.write("#Time %g\n" % (dt * step))
     for domain in active_species_pool.species_list():
         structure_output.write('%s    %g\n' % (domain, active_species_pool.get_population(domain)))
     log.write('Step: %3d \n' % step)
     log.flush()
+
+    # Iterative elongation
     while sequence_length > current_length:
         step += 1
         # print('Step: %3d \n'%step)
@@ -130,67 +138,62 @@ if __name__ == '__main__':
         log.write('Time: %d \n'%active_species_pool.timestamp )
         log.write('Population size after selection: '+str(active_species_pool.size)+'\n')
         log.write('Selection finished \n')
-        # pickle & outputs
-        # with gzip.open(clargs.sequence + '_pool.p.gz', 'a') as checkpoint_pool:
-        # pickle.dump(active_species_pool, checkpoint_pool)
-        # with open(clargs.sequence + '.dat', 'a') as structure_output:
+
         for time_index in range(len(time_array)):
             structure_output.write("#Time %g\n" % time_array[time_index])
             for species_index in range(len(species_list)):
                 structure_output.write(
                     '%s    %g\n' % (species_list[species_index][0],
                                     intermediate_population_arrays[time_index][species_index]))
-        # with open(clargs.sequence + '.log', 'a') as log:
-        # log.write('Step: %3d \n' % step)
 
         log.flush()
         structure_output.flush()
-        # pickle.dump(active_species_pool, checkpoint_pool)
+        if clargs.chk:
+            pickle.dump(active_species_pool, checkpoint_pool)
         # structure_output.write('#Time %g\n'%(dt*step))
         # for domain in active_species_pool.species_list():
         #     structure_output.write('%s    %g\n'%(domain, active_species_pool.get_population(domain)))
 
     # Post-transcriptional folding
+    if clargs.post:
+        time_limit = 100000
+        dtt = 100
+        step += 1
+        # print('Step: %3d \n'%step)
+        log.write('Post-transcriptional folding:\n')
+        log.write('Step: %3d \n' % step)
+        # old_species_pool = copy.deepcopy(active_species_pool)
+        # old_species_list = old_species_pool.species_list()
+        # active_species_pool.clear()
+        log.flush()
 
-    time_limit = 100000
-    dtt = 100
-    step += 1
-    # print('Step: %3d \n'%step)
-    log.write('Post-transcriptional folding:\n')
-    log.write('Step: %3d \n' % step)
-    # old_species_pool = copy.deepcopy(active_species_pool)
-    # old_species_list = old_species_pool.species_list()
-    # active_species_pool.clear()
-    log.flush()
+        log.write('Population evolution... \n')
+        log.write('Population size before selection: ' + str(active_species_pool.size) + '\n')
+        log.flush()
+        species_list, intermediate_population_arrays, time_array = \
+            active_species_pool.evolution(all_pathways, time_limit, ddt, stationary=clargs.stationary)
+        active_species_pool.selection(population_size_limit)
+        log.flush()
+        log.write('Time: %d \n' % active_species_pool.timestamp)
+        log.write('Population size after selection: ' + str(active_species_pool.size) + '\n')
+        log.write('Selection finished \n')
+        # pickle & outputs
 
-    log.write('Population evolution... \n')
-    log.write('Population size before selection: ' + str(active_species_pool.size) + '\n')
-    log.flush()
-    species_list, intermediate_population_arrays, time_array = \
-        active_species_pool.evolution(all_pathways, time_limit, ddt, stationary=clargs.stationary)
-    active_species_pool.selection(population_size_limit)
-    log.flush()
-    log.write('Time: %d \n' % active_species_pool.timestamp)
-    log.write('Population size after selection: ' + str(active_species_pool.size) + '\n')
-    log.write('Selection finished \n')
-    # pickle & outputs
-    # with gzip.open(clargs.sequence + '_pool.p.gz', 'a') as checkpoint_pool:
-    pickle.dump(active_species_pool, checkpoint_pool)
-    # with open(clargs.sequence + '.dat', 'a') as structure_output:
-    for time_index in range(len(time_array)):
-        structure_output.write("#Time %g\n" % time_array[time_index])
-        for species_index in range(len(species_list)):
-            structure_output.write(
-                '%s    %g\n' % (species_list[species_index][0],
-                                intermediate_population_arrays[time_index][species_index]))
-    # with open(clargs.sequence + '.log', 'a') as log:
-    # log.write('Step: %3d \n' % step)
+        if clargs.chk:
+            pickle.dump(active_species_pool, checkpoint_pool)
 
-    log.flush()
-    structure_output.flush()
+        for time_index in range(len(time_array)):
+            structure_output.write("#Time %g\n" % time_array[time_index])
+            for species_index in range(len(species_list)):
+                structure_output.write(
+                    '%s    %g\n' % (species_list[species_index][0],
+                                    intermediate_population_arrays[time_index][species_index]))
 
-    with gzip.open(prefix + '_domains.p.gz', 'w') as checkpoint_domains:
-        pickle.dump(all_domains, checkpoint_domains)
+        log.flush()
+        structure_output.flush()
+    if clargs.chk:
+        with gzip.open(prefix + '_domains.p.gz', 'w') as checkpoint_domains:
+            pickle.dump(all_domains, checkpoint_domains)
 
     checkpoint_pool.close()
     log.close()

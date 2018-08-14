@@ -39,21 +39,10 @@ if __name__ == '__main__':
     with open(clargs.sequence + '.in', 'r') as sequence_file:
         full_sequence = sequence_file.readline().rstrip('\n')
 
-    #   NOTE: Initiation [create active population]
-
-    # NOTE: Initiate transcription
-
-    # print('Population size: '+str(active_species_pool.size))
-
     # Start IO
     fig = plt.figure(figsize=(8, 6))
     fig.add_axes()
-    # gs = gridspec.GridSpec(1, 1, height_ratios=[1])
     NUM_COLORS = 16
-    #ax_energy = fig.add_subplot(gs[0, 0])
-    #ax_energy.set_title('Free Energy')
-    # ax_energy.set_xlabel('Subsequence Length', fontsize=12.5)
-    #ax_energy.set_ylabel('Free Energy', fontsize=12.5)
     cm = plt.get_cmap('gist_rainbow')
     ax_pbound = fig.add_subplot(111)
     ax_pbound.set_color_cycle([cm(1. * i / NUM_COLORS) for i in range(NUM_COLORS)])
@@ -67,7 +56,7 @@ if __name__ == '__main__':
     # ax_localpop.set_ylim(1e-5, 1.5)
     # ax_localpop.set_ylim(0.0, 1.1)
 
-    for e_k in range(1, 16, 1):
+    for e_k in range(5, 16, 1):
         k = 1*10**e_k
         print('k= %.2g'%k)
         data = defaultdict(np.float)
@@ -89,7 +78,8 @@ if __name__ == '__main__':
                         # f.write('#N=' + str(N) + ' nt')
                         # sim = np.zeros(len(structure))
                         SD_ss = ss[0][SD_start:SD_end]
-                        data[time] += ss[1] * similar(SD_ss, '.......')
+                        data[time] += ss[1] * SD_ss.count('.')/(SD_end-SD_start)
+                        
                         local_structure_collection_data[SD_ss][time] += ss[1]
                         # print(data[time])
                         # for i in range(len(first_sequences)):
@@ -107,11 +97,11 @@ if __name__ == '__main__':
                 local_output.write(' '.join(map(str, local_structure_collection_data[local_ss].keys())) + '\n')
                 local_output.write(' '.join(map(str, local_structure_collection_data[local_ss].values())) + '\n')
 
-        ax_pbound.plot(data_p[0], data_p[1], label='k=' + '%.2g' % k + r'$s^{-1}$')
+        ax_pbound.plot(data_p[0], data_p[1], label=r'$k/k_T$ = ' + '%.2g' % k + r'$s^{-1}$')
         for d in data.items():
             f.write(f'{d[0]}  {d[1]}\n')
         f.close()
-
+    print('k= inf')
     data = defaultdict(np.float)
     local_structure_collection_data = defaultdict(lambda: defaultdict(np.float))
     f = open(clargs.sequence + '_p_unbound_inf' + '.dat', 'w')
@@ -126,30 +116,18 @@ if __name__ == '__main__':
             else:
                 # print(ss)
                 if len(ss[0]) >= SD_end:
-                    # time = (len(ss[0])-L_init) * transcription_time
-                    # print('N=' + str(N) + ' nt')
-                    # f.write('#N=' + str(N) + ' nt')
-                    # sim = np.zeros(len(structure))
                     SD_ss = ss[0][SD_start:SD_end]
-                    data[time] += ss[1] * similar(SD_ss, '.......')
+                    data[time] += ss[1] * SD_ss.count('.')/(SD_end-SD_start)
                     local_structure_collection_data[SD_ss][time] += ss[1]
-                    # print(data[time])
-                    # for i in range(len(first_sequences)):
-                    #     temp_cmp = []
-                    #     for cmpseq in first_sequences:
-                    #         temp_cmp.append(similar(cmpseq, first_sequences[i]))
-                    #     sim[i + N] = np.average(np.array(temp_cmp))
-                    # print(sim)
         data_p = np.array([list(data.keys()), list(data.values())])
-        # data_p.transpose()
-        # folding_input.close()
+
     with open(clargs.sequence + '_local_population_k' + 'inf' + '.dat', 'w+') as local_output:
         for local_ss in local_structure_collection_data.keys():
             local_output.write(local_ss + '\n')
             local_output.write(' '.join(map(str, local_structure_collection_data[local_ss].keys())) + '\n')
             local_output.write(' '.join(map(str, local_structure_collection_data[local_ss].values())) + '\n')
 
-    ax_pbound.plot(data_p[0], data_p[1], label='k=' + 'inf' + r'$s^{-1}$')
+    ax_pbound.plot(data_p[0], data_p[1], label=r'$k/k_T$ = ' + 'inf' + r'$s^{-1}$')
     for d in data.items():
         f.write(f'{d[0]}  {d[1]}\n')
     f.close()
@@ -165,15 +143,8 @@ if __name__ == '__main__':
         base_gene_position = base_position-14
         fig = plt.figure(figsize=(8, 6))
         fig.add_axes()
-        # gs = gridspec.GridSpec(1, 1, height_ratios=[1])
-        # NUM_COLORS = 13
-        # ax_energy = fig.add_subplot(gs[0, 0])
-        # ax_energy.set_title('Free Energy')
-        # ax_energy.set_xlabel('Subsequence Length', fontsize=12.5)
-        # ax_energy.set_ylabel('Free Energy', fontsize=12.5)
         ax_pbound = fig.add_subplot(111)
         ax_pbound.set_color_cycle([cm(1. * i / NUM_COLORS) for i in range(NUM_COLORS)])
-
         # ax_localpop.set_title(f'Average p_unbound for base[-9](G) {clargs.sequence}')
         ax_pbound.set_title(f'p_unbound of base [{base_gene_position}] {clargs.sequence}')
         ax_pbound.set_xlabel('Transcription time', fontsize=12.5)
@@ -182,11 +153,10 @@ if __name__ == '__main__':
         # ax_localpop.set_xscale('log')
         ax_pbound.set_ylim(1e-4, 1.5)
 
-        for e_k in range(1, 16, 1):
+        for e_k in range(5, 16, 1):
             k = 1 * 10 ** e_k
-            print(f'k= {k}')
+            print('k= %.2g' % k)
             data = defaultdict(np.float)
-            f = open(clargs.sequence + '_p_unbound_%e' % k + '.dat', 'w')
             with open(clargs.sequence + '_k' + '%e' % k + '.dat', 'r+') as folding_input:
                 sss = [(x.split()[0].rstrip('\n'), np.float(x.split()[1]))
                        for x in folding_input.readlines()]
@@ -197,28 +167,34 @@ if __name__ == '__main__':
                     else:
                         # print(time)
                         if len(ss[0]) >= SD_end:
-                            # time = (len(ss[0])-L_init) * transcription_time
-                            # print('N=' + str(N) + ' nt')
-                            # f.write('#N=' + str(N) + ' nt')
-                            # sim = np.zeros(len(structure))
                             SD_ss = ss[0][SD_start:SD_end]
-                            data[time] += ss[1] * similar(SD_ss[base_position], '.')
-                            # print(data[time])
-                            # for i in range(len(first_sequences)):
-                            #     temp_cmp = []
-                            #     for cmpseq in first_sequences:
-                            #         temp_cmp.append(similar(cmpseq, first_sequences[i]))
-                            #     sim[i + N] = np.average(np.array(temp_cmp))
-                            # print(sim)
+                            data[time] += ss[1] * SD_ss[base_position].count('.')
                 data_p = np.array([list(data.keys()), list(data.values())])
                 # data_p.transpose()
             # print(data_p)
-            ax_pbound.plot(data_p[0], data_p[1], label='k=' + '%.2g' % k + r'$s^{-1}$')
-            for d in data.items():
-                f.write(f'{d[0]}  {d[1]}\n')
-            f.close()
+            ax_pbound.plot(data_p[0], data_p[1], label=r'$k/k_T$ = ' + '%.2g' % k + r'$s^{-1}$')
+
+        print('k= inf')
+        data = defaultdict(np.float)
+        with open(clargs.sequence + '_stationary' + '.dat', 'r+') as folding_input:
+
+            sss = [(x.split()[0], np.float(x.split()[1]))
+                   for x in folding_input.readlines()]
+
+            for ss in sss:
+                if ss[0].startswith('#'):
+                    time = ss[1]
+                else:
+                    # print(ss)
+                    if len(ss[0]) >= SD_end:
+                        SD_ss = ss[0][SD_start:SD_end]
+                        data[time] += ss[1] * SD_ss[base_position].count('.')
+            data_p = np.array([list(data.keys()), list(data.values())])
+
+        ax_pbound.plot(data_p[0], data_p[1], label=r'$k/k_T$ = ' + 'inf' + r'$s^{-1}$')
         ax_pbound.plot(data_p[0], np.repeat(equi_p_unbound[base_position],
                                             len(data_p[0])), label='equilibrium')
+
         ax_pbound.legend(loc='best')
         # fig.tight_layout()
         plt.show()

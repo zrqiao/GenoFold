@@ -25,7 +25,6 @@ if __name__ == '__main__':
 
     plt.style.use('ggplot')
     fig = plt.figure(figsize=(10, 10))
-
     # colors = [plt.cm.jet(lt) for lt in range(0, 8)]
     fig.add_axes()
 
@@ -59,19 +58,20 @@ if __name__ == '__main__':
     ax_pbound = fig.add_subplot(111)
     ax_pbound.set_color_cycle([cm(1. * i / NUM_COLORS) for i in range(NUM_COLORS)])
 
-    # ax_pbound.set_title(f'Average p_unbound for base[-9](G) {clargs.sequence}')
+    # ax_localpop.set_title(f'Average p_unbound for base[-9](G) {clargs.sequence}')
     ax_pbound.set_title(f'Average p_unbound of SD sequence {clargs.sequence}')
     ax_pbound.set_xlabel('Transcription time', fontsize=12.5)
     ax_pbound.set_ylabel(r'$p_{unbound}$', fontsize=12.5)
-    # ax_pbound.set_yscale('log')
-    # ax_pbound.set_xscale('log')
-    # ax_pbound.set_ylim(1e-5, 1.5)
-    # ax_pbound.set_ylim(0.0, 1.1)
+    # ax_localpop.set_yscale('log')
+    # ax_localpop.set_xscale('log')
+    # ax_localpop.set_ylim(1e-5, 1.5)
+    # ax_localpop.set_ylim(0.0, 1.1)
 
     for e_k in range(1, 16, 1):
         k = 1*10**e_k
         print(f'k= {k}')
         data = defaultdict(np.float)
+        local_structure_collection_data = defaultdict(lambda: defaultdict(np.float))
         f = open(clargs.sequence + '_p_unbound_%e' % k + '.dat', 'w')
         with open(clargs.sequence + '_k' + '%e' % k + '.dat', 'r+') as folding_input:
 
@@ -89,8 +89,8 @@ if __name__ == '__main__':
                         # f.write('#N=' + str(N) + ' nt')
                         # sim = np.zeros(len(structure))
                         SD_ss = ss[0][SD_start:SD_end]
-
                         data[time] += ss[1] * similar(SD_ss, '.......')
+                        local_structure_collection_data[SD_ss][time] += ss[1]
                         # print(data[time])
                         # for i in range(len(first_sequences)):
                         #     temp_cmp = []
@@ -101,6 +101,11 @@ if __name__ == '__main__':
             data_p = np.array([list(data.keys()), list(data.values())])
             # data_p.transpose()
             # folding_input.close()
+        with open(clargs.sequence + '_local_population_k' + '%e' % k + '.dat', 'w+') as local_output:
+            for local_ss in local_structure_collection_data.keys():
+                local_output.write(local_ss+'\n')
+                local_output.write(' '.join(map(str, local_structure_collection_data[local_ss].keys())) + '\n')
+                local_output.write(' '.join(map(str, local_structure_collection_data[local_ss].values())) + '\n')
 
         ax_pbound.plot(data_p[0], data_p[1], label='k=' + '%.2g' % k + r'$s^{-1}$')
         for d in data.items():
@@ -126,12 +131,12 @@ if __name__ == '__main__':
         ax_pbound = fig.add_subplot(111)
         ax_pbound.set_color_cycle([cm(1. * i / NUM_COLORS) for i in range(NUM_COLORS)])
 
-        # ax_pbound.set_title(f'Average p_unbound for base[-9](G) {clargs.sequence}')
+        # ax_localpop.set_title(f'Average p_unbound for base[-9](G) {clargs.sequence}')
         ax_pbound.set_title(f'p_unbound of base [{base_gene_position}] {clargs.sequence}')
         ax_pbound.set_xlabel('Transcription time', fontsize=12.5)
         ax_pbound.set_ylabel(r'$p_{unbound}$', fontsize=12.5)
         ax_pbound.set_yscale('log')
-        # ax_pbound.set_xscale('log')
+        # ax_localpop.set_xscale('log')
         ax_pbound.set_ylim(1e-4, 1.5)
 
         for e_k in range(1, 16, 1):

@@ -38,6 +38,10 @@ if __name__ == '__main__':
     else:
         prefix = clargs.sequence + '_stationary'
 
+    dL = clargs.CG_length
+
+    population_size_limit = clargs.pool_size
+
     with open(clargs.sequence + '.in', 'r') as sequence_file:
         full_sequence = sequence_file.readline().rstrip('\n')
 

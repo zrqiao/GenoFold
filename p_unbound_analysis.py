@@ -69,7 +69,7 @@ if __name__ == '__main__':
 
     for e_k in range(1, 16, 1):
         k = 1*10**e_k
-        print(f'k= {k}')
+        print('k= %.2g'%k)
         data = defaultdict(np.float)
         local_structure_collection_data = defaultdict(lambda: defaultdict(np.float))
         f = open(clargs.sequence + '_p_unbound_%e' % k + '.dat', 'w')
@@ -111,6 +111,49 @@ if __name__ == '__main__':
         for d in data.items():
             f.write(f'{d[0]}  {d[1]}\n')
         f.close()
+
+    data = defaultdict(np.float)
+    local_structure_collection_data = defaultdict(lambda: defaultdict(np.float))
+    f = open(clargs.sequence + '_p_unbound_inf' + '.dat', 'w')
+    with open(clargs.sequence + '_stationary' + '.dat', 'r+') as folding_input:
+
+        sss = [(x.split()[0], np.float(x.split()[1]))
+               for x in folding_input.readlines()]
+
+        for ss in sss:
+            if ss[0].startswith('#'):
+                time = ss[1]
+            else:
+                # print(ss)
+                if len(ss[0]) >= SD_end:
+                    # time = (len(ss[0])-L_init) * transcription_time
+                    # print('N=' + str(N) + ' nt')
+                    # f.write('#N=' + str(N) + ' nt')
+                    # sim = np.zeros(len(structure))
+                    SD_ss = ss[0][SD_start:SD_end]
+                    data[time] += ss[1] * similar(SD_ss, '.......')
+                    local_structure_collection_data[SD_ss][time] += ss[1]
+                    # print(data[time])
+                    # for i in range(len(first_sequences)):
+                    #     temp_cmp = []
+                    #     for cmpseq in first_sequences:
+                    #         temp_cmp.append(similar(cmpseq, first_sequences[i]))
+                    #     sim[i + N] = np.average(np.array(temp_cmp))
+                    # print(sim)
+        data_p = np.array([list(data.keys()), list(data.values())])
+        # data_p.transpose()
+        # folding_input.close()
+    with open(clargs.sequence + '_local_population_k' + 'inf' + '.dat', 'w+') as local_output:
+        for local_ss in local_structure_collection_data.keys():
+            local_output.write(local_ss + '\n')
+            local_output.write(' '.join(map(str, local_structure_collection_data[local_ss].keys())) + '\n')
+            local_output.write(' '.join(map(str, local_structure_collection_data[local_ss].values())) + '\n')
+
+    ax_pbound.plot(data_p[0], data_p[1], label='k=' + 'inf' + r'$s^{-1}$')
+    for d in data.items():
+        f.write(f'{d[0]}  {d[1]}\n')
+    f.close()
+
     ax_pbound.plot(data_p[0], np.repeat(np.average(equi_p_unbound), len(data_p[0])), label='equilibrium')
     ax_pbound.legend(loc='best')
     # fig.tight_layout()

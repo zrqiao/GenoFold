@@ -12,10 +12,11 @@ module load python
 
 for ((i=1;i<=17;i=i+1))
 do
-    echo -e "\033[44;37;5m Simulating with k= $i"
-    python Folding_Dynamics.py --k 1e$i --path folA_WT/foldons.dat folA_WT/RNA &
-    sleep 15m
+    echo -e "Simulating with k= $i"
+    python GenoFold.py --k 1e$i --path folA_WT/foldons.dat --CG 5 folA_WT/RNA &
+    sleep 1m
 done
+python GenoFold.py --stationary --path folA_WT/foldons.dat --CG 5 folA_WT/RNA
 
 # monitor output (need formatted string)
 

@@ -33,7 +33,7 @@ if __name__ == '__main__':
 
     clargs = parser.parse_args()
     if not clargs.stationary:
-        prefix = clargs.sequence + '_k' + '%e' % clargs.k
+        prefix = clargs.sequence + '_k' + '%.2g' % clargs.k
     else:
         prefix = clargs.sequence + '_stationary'
 
@@ -98,15 +98,15 @@ if __name__ == '__main__':
         # Generate all new foldons
         l_bounds = np.arange(0, current_length, dL)
         # multi_pool = Pool(MULTI_PROCESS)
-        log.write('Calculate new foldons...')
-        log.flush()
 
         if not clargs.path:  # no pre-calculated foldon data
+            log.write('Calculate new foldons...')
+            log.flush()
             for l_bound in l_bounds:
                 all_foldons.new_foldon(full_sequence[l_bound:current_length], l_bound, current_length, all_domains)
         # print(old_species_list)
-        log.write(' finished\n')
-        log.flush()
+            log.write(' finished\n')
+            log.flush()
         # NOTE: population is inherited without updating its IFR!! No new domain instance should be created.
 
         # NOTE: structure_generation(single strain, elongation segment) [to be called in pool.map()]
@@ -195,7 +195,8 @@ if __name__ == '__main__':
         with gzip.open(prefix + '_domains.p.gz', 'w') as checkpoint_domains:
             pickle.dump(all_domains, checkpoint_domains)
 
-    checkpoint_pool.close()
+        checkpoint_pool.close()
+
     log.close()
     structure_output.close()
 

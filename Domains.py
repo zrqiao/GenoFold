@@ -468,16 +468,16 @@ class SpeciesPool(object):
             population_array[i] = species_list[i][1]
             for j in range(self.size):
                 rate_matrix[i][j] = pathways.get_rate(species_list[i][0], species_list[j][0])
+            rate_matrix[i][i] = -np.sum(rate_matrix[i])
 
         k_fastest = np.max(rate_matrix)
-
+        self.timestamp += dt
         time_array = np.arange(0, dt, ddt) + self.timestamp + ddt
 
         if stationary:
             intermediate_population_arrays = \
                 preprocessing.normalize([[rate(species[0].get_G(), 1) for species in species_list]
                                         for t in time_array], norm='l2')
-
             return species_list, intermediate_population_arrays, time_array
 
         for i in range(self.size):  # Make it a REAL sparse matrix
@@ -494,7 +494,7 @@ class SpeciesPool(object):
         # print(time_2-time_1)
 
         population_array = intermediate_population_arrays[-1]
-        self.timestamp += dt
+
 
         # print(rate_matrix)
         # print(population_array)

@@ -13,10 +13,10 @@ module load python
 for ((i=1;i<=15;i=i+1))
 do
     echo -e "Simulating with k= $i"
-    python GenoFold.py --k 1e$i --path folA_WT/foldons.dat --CG 5 folA_WT/RNA &
+    python GenoFold.py --k 1e$i --path folA_WT/foldons.dat --CG 5 folA_WT/CG5/RNA &
     sleep 1m
 done
-python GenoFold.py --stationary --path folA_WT/foldons.dat --CG 5 folA_WT/RNA
+python GenoFold.py --stationary --path folA_WT/foldons.dat --CG 5 folA_WT/CG5/RNA
 
 # monitor output (need formatted string)
 

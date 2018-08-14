@@ -30,6 +30,7 @@ if __name__ == '__main__':
     parser.add_argument('--CG-length', type=int, default=dL, help="coarse grained unit")
     parser.add_argument('--pool-size', type=int, default=population_size_limit, help="Active pool limit")
     parser.add_argument('--chk', action='store_true', help="Save checkpoint files")
+    parser.add_argument('--output', type=str, default=None, help="Folder to store foldons")
 
     clargs = parser.parse_args()
     if not clargs.stationary:

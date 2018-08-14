@@ -10,7 +10,7 @@ sequence=ATACCCGTTTTTTGGGCTAACAGGAGGAATTACATATGATCAGTCTGATTGCGGCGTTAGCGGTAGATCGC
 
 module load python
 
-for ((i=1;i<=17;i=i+1))
+for ((i=1;i<=15;i=i+1))
 do
     echo -e "Simulating with k= $i"
     python GenoFold.py --k 1e$i --path folA_WT/foldons.dat folA_WT/RNA &

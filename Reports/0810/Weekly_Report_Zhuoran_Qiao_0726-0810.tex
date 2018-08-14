@@ -44,7 +44,9 @@
 
 \section{Progress}
 \subsection{Framework}
-To quantitatively predict folding dynamics coupled with transcription, we developed a genetic algorithm based approach.
+Over decades various algorithms or programs have been developed to predict RNA folding pathways; however present methods are either designed for only predicting
+annealing dynamics or limited to RNA segments with length up to hundred bases. To quantitatively predict folding dynamics coupled with transcription,
+we developed a genetic algorithm based approach, which is capable of capturing kilobase level kinetics.
  Our method is built on two following assumptions:
 \paragraph{1} All populated RNA secondary structures (SS) are linkage of locally optimal or sub-optimal structures at various folding sites;
 \paragraph{2} Global structural rearrangement of a partial RNA segment is permitted only if it's folding to the optimal SS on that segment.
@@ -131,8 +133,9 @@ Pseudocodes of the procedure are as follows (Algorithm \ref{algorithm:1}):
 \subsection{Folding pathway identification \& Rate calculation} \label{section:rate}
 
 Given two domains between which rearrangement is allowed, the task is to compute forward and backward rate constant
-linking each other. Multiple methods to rigorously calculate the maximum likelihood during RNA folding have been reported; 
-here we proposed a computationally feasible approach
+linking each other. Multiple methods to rigorously calculate the maximum likelihood during RNA folding have been reported;
+here we proposed a computationally feasible approach: the forward free energy barrier is estimated by sum up all free energy associated
+with old stacks unzipping and new loop forming.
 
 %\paragraph{a.} Using a genetic-algorithm based method and NUPACK to predict populated RNA configurations during cotranscriptional folding (in progress);
 %\paragraph{b.} Using master equation method to simulate evolution of folding configurations and SD sequence accessibility.

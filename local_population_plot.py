@@ -11,6 +11,7 @@ from collections import defaultdict
 L_init = 10  # Initiation unit
 dL = 10  # elongation unit (also means CG unit)
 transcription_time = 0.1
+ddt=0.1
 dt = transcription_time * dL  # Folding time for each elongation step (0.1 s/nt)
 population_size_limit = 100  # maximum type of strands in the pool
 MULTI_PROCESS = 32
@@ -33,18 +34,26 @@ def local_plot(ax_localpop, local_input_path, label):
         print(f'SD Local folding population $k/k_T$ = {label}')
         data_raw = local_input.readlines()
         ss_num = int(len(data_raw) / 3)
+        sss=[]
+        prev_pop = np.zeros(int(516/ddt))
+        time_array = np.arange(0, 516, ddt)
         for i in range(ss_num):
             ss = data_raw[i * 3].rstrip('\n')
-            times = list(map(np.float, data_raw[i * 3 + 1].split()))
-            populations = list(map(np.float, data_raw[i * 3 + 2].split()))
-            ax_localpop.plot(times, populations, label=ss)
+            times_raw = list(map(np.float, data_raw[i * 3 + 1].split()))
+            populations_raw = list(map(np.float, data_raw[i * 3 + 2].split()))
+            populations = np.zeros(int(516/ddt))
+            for j in range(len(times_raw)):
+                populations[int(times_raw[j]/ddt)] = populations_raw[j]
+
+            ax_localpop.bar(time_array, populations, bottom=prev_pop, label=ss)
+            prev_pop += populations
     ax_localpop.legend(loc='best')
 
 
 if __name__ == '__main__':
 
     plt.style.use('ggplot')
-    fig = plt.figure(figsize=(10, 10))
+    fig = plt.figure(figsize=(20, 20))
     # colors = [plt.cm.jet(lt) for lt in range(0, 8)]
     fig.add_axes()
 
@@ -59,9 +68,6 @@ if __name__ == '__main__':
     with open(clargs.sequence + '.in', 'r') as sequence_file:
         full_sequence = sequence_file.readline().rstrip('\n')
 
-    fig = plt.figure(figsize=(12, 12))
-    fig.add_axes()
-
     for e_k in range(1, 16, 1):
         ax_localpop = fig.add_subplot(4, 4, e_k)
         k = 1 * 10 ** e_k
@@ -75,7 +81,7 @@ if __name__ == '__main__':
     label = 'inf'
     local_plot(ax_localpop, local_input_path, label)
 
-    fig.tight_layout()
+    # fig.tight_layout()
     plt.show()
 
     fig.savefig(clargs.sequence + '_local_population_evolution_summary.eps')

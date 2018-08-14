@@ -10,7 +10,6 @@ import copy
 import time
 
 # Change following routines for other environments:
-L_init = 1  # Initiation unit
 dL = 1  # elongation unit (also means CG unit)
 ddt = 0.1  # differential time step
 transcription_time = 1
@@ -41,6 +40,8 @@ if __name__ == '__main__':
     dL = clargs.CG_length
 
     population_size_limit = clargs.pool_size
+
+    L_init = dL  # Initiation unit
 
     with open(clargs.sequence + '.in', 'r') as sequence_file:
         full_sequence = sequence_file.readline().rstrip('\n')

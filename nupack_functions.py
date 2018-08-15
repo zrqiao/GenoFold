@@ -20,6 +20,18 @@ def nupack_free_energy(sequence, T):
         dG = float(nupack_output.decode('ascii').split('\n')[-3])
     return dG
 
+def nupack_pfunc(sequence, T):
+    # Use NUPACK to calculate the -log partition function of a sequence
+    # NOTE: This free energy sums over all possible secondary structures
+    seq = rna_seq(sequence)
+    with subprocess.Popen([nupack_path + '/pfunc', '-T', str(T)],
+                          stdin=subprocess.PIPE, stdout=subprocess.PIPE, \
+                          stderr=subprocess.PIPE, env=nupack_env) as proc:
+        nupack_input = bytes("%s\n" % seq, 'ascii')
+        nupack_output, nupack_err = proc.communicate(nupack_input)
+        pfunc = float(nupack_output.decode('ascii').split('\n')[-2])
+    return pfunc
+
 def nupack_mfe(sequence, T):
     # Use NUPACK to calculate the minimum-free-energy secondary structure of a sequence
     # NOTE: Returns a secondary structure in the (((.))) notation

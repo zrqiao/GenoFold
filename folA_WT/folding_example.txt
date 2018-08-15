@@ -1,0 +1,12 @@
+>Purple
+AUACCCGUUUUUUGGGCUAACAGGAGGAAUUACAUAUGAUCAGUCUGAUUGCGGCGUUAGCGGUAGA
+..((((((...(((((((.(((.(.(......).).)).).)))))))..)))).))..........
+>Grey
+AUACCCGUUUUUUGGGCUAACAGGAGGAAUUACAUAUGAUCAGUCUGAUUGCGGCGUUAGCGGUAGA
+...((((.....))))....((((..((...........))..))))..(((.((....)).)))..
+>Red
+AUACCCGUUUUUUGGGCUAACAGGAGGAAUUACAUAUGAUCAGUCUGAUUGCGGCGUUAGCGGUAGA
+...((((.....))))...............................(((((.......)))))...
+>Blue
+AUACCCGUUUUUUGGGCUAACAGGAGGAAUUACAUAUGAUCAGUCUGAUUGCGGCGUUAGCGGUAGA
+....(((.....))).((......)).....................(((((.......)))))...

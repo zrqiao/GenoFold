@@ -56,7 +56,7 @@ if __name__ == '__main__':
     # ax_localpop.set_ylim(1e-5, 1.5)
     # ax_localpop.set_ylim(0.0, 1.1)
 
-    for e_k in range(5, 16, 1):
+    for e_k in range(1, 16, 1):
         k = 1*10**e_k
         print('k= %.2g'%k)
         data = defaultdict(np.float)
@@ -97,10 +97,11 @@ if __name__ == '__main__':
                 local_output.write(' '.join(map(str, local_structure_collection_data[local_ss].keys())) + '\n')
                 local_output.write(' '.join(map(str, local_structure_collection_data[local_ss].values())) + '\n')
 
-        ax_pbound.plot(data_p[0], data_p[1], label=r'$k/k_T$ = ' + '%.2g' % k + r'$s^{-1}$')
+        ax_pbound.plot(data_p[0], data_p[1], label=r'$k/k_T$ = ' + '%.2g' % k )
         for d in data.items():
             f.write(f'{d[0]}  {d[1]}\n')
         f.close()
+
     print('k= inf')
     data = defaultdict(np.float)
     local_structure_collection_data = defaultdict(lambda: defaultdict(np.float))
@@ -127,7 +128,7 @@ if __name__ == '__main__':
             local_output.write(' '.join(map(str, local_structure_collection_data[local_ss].keys())) + '\n')
             local_output.write(' '.join(map(str, local_structure_collection_data[local_ss].values())) + '\n')
 
-    ax_pbound.plot(data_p[0], data_p[1], label=r'$k/k_T$ = ' + 'inf' + r'$s^{-1}$')
+    ax_pbound.plot(data_p[0], data_p[1], label=r'$k/k_T$ = ' + 'inf' )
     for d in data.items():
         f.write(f'{d[0]}  {d[1]}\n')
     f.close()
@@ -153,7 +154,7 @@ if __name__ == '__main__':
         # ax_localpop.set_xscale('log')
         ax_pbound.set_ylim(1e-4, 1.5)
 
-        for e_k in range(5, 16, 1):
+        for e_k in range(1, 16, 1):
             k = 1 * 10 ** e_k
             print('k= %.2g' % k)
             data = defaultdict(np.float)
@@ -172,7 +173,7 @@ if __name__ == '__main__':
                 data_p = np.array([list(data.keys()), list(data.values())])
                 # data_p.transpose()
             # print(data_p)
-            ax_pbound.plot(data_p[0], data_p[1], label=r'$k/k_T$ = ' + '%.2g' % k + r'$s^{-1}$')
+            ax_pbound.plot(data_p[0], data_p[1], label=r'$k/k_T$ = ' + '%.2g' % k )
 
         print('k= inf')
         data = defaultdict(np.float)
@@ -191,7 +192,7 @@ if __name__ == '__main__':
                         data[time] += ss[1] * SD_ss[base_position].count('.')
             data_p = np.array([list(data.keys()), list(data.values())])
 
-        ax_pbound.plot(data_p[0], data_p[1], label=r'$k/k_T$ = ' + 'inf' + r'$s^{-1}$')
+        ax_pbound.plot(data_p[0], data_p[1], label=r'$k/k_T$ = ' + 'inf' )
         ax_pbound.plot(data_p[0], np.repeat(equi_p_unbound[base_position],
                                             len(data_p[0])), label='equilibrium')
 

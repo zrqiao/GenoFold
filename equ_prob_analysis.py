@@ -5,6 +5,7 @@ import nupack_functions
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
 import matplotlib as mpl
+from multiprocessing import Pool
 import argparse, math, random, gzip, pickle, types
 from collections import defaultdict
 
@@ -23,6 +24,22 @@ equi_p_unbound = [0.0414220, 0.0612670, 0.0839040, 0.9764600, 0.9300200, 0.08617
 def similar(a, b):
     return SequenceMatcher(None, a, b).ratio()
 
+def pfunc_map(dat):
+    time = dat[0]
+    seq = dat[1]
+    print(time)
+    pfunc = nupack_functions.nupack_pfunc(seq, 37)
+    return (time, pfunc)
+
+def boltzmann_map(dat):
+    time = dat[0]
+    seq = dat[1]
+    ss = dat[2]
+    print(ss)
+    G = nupack_functions.nupack_ss_free_energy(seq, ss[0], 37)
+    bolz = Domains.rate(G, 1)
+    return (time, ss, bolz)
+
 
 if __name__ == '__main__':
 
@@ -37,7 +54,9 @@ if __name__ == '__main__':
     print('k= inf')
     # data = defaultdict(np.float)
     local_structure_collection_data = defaultdict(lambda: defaultdict(np.float))
-    norm_c = defaultdict(np.float)
+    pfuncs = defaultdict(np.float)
+    preprocess_data1 = []  # time, seq, ss
+    preprocess_data2 = []  # time, seq
     # f = open(clargs.sequence + '_p_unbound_inf_nupack' + '.dat', 'w')
     with open(clargs.sequence + '_stationary' + '.dat', 'r+') as folding_input:
 
@@ -47,20 +66,32 @@ if __name__ == '__main__':
         for ss in sss:
             if ss[0].startswith('#'):
                 time = ss[1]
-                pfunc=0
+                seq = full_sequence[:len(ss[0])]
+                preprocess_data2.append((time, seq))
             else:
-                # print(ss)
+
                 if len(ss[0]) >= SD_end:
-                    seq = full_sequence[:len(ss[0])]
-                    if pfunc == 0:
-                        pfunc = nupack_functions.nupack_pfunc(seq, 37)
-                    SD_ss = ss[0][SD_start:SD_end]
-                    G = nupack_functions.nupack_ss_free_energy(seq, ss[0], 37)
-                    nupack_prob = Domains.rate(G, 1)/pfunc
+                    preprocess_data1.append((time, seq, ss[0]))
                     # norm_c[time] += nupack_prob
                     # data[time] += ss[1] * SD_ss.count('.') / (SD_end - SD_start)
-                    local_structure_collection_data[SD_ss][time] += nupack_prob
+
         # data_p = np.array([list(data.keys()), list(data.values())])
+
+    pool = Pool()
+    data1 = boltzmann_map(preprocess_data1)
+    pool.close()
+    pool.join()
+    data2 = pfunc_map(preprocess_data2)
+    pool.close()
+    for dat in data2:
+        pfuncs[data2[0]] = data2[1]
+    for dat in data1:
+        time = dat[0]
+        ss = dat[1]
+        bolz = dat[2]
+        nupack_prob = bolz / pfuncs[time]
+        SD_ss = ss[SD_start:SD_end]
+        local_structure_collection_data[SD_ss][time] += nupack_prob
 
     with open(clargs.sequence + '_local_population_k' + 'inf_nupack' + '.dat', 'w+') as local_output:
         for local_ss in local_structure_collection_data.keys():

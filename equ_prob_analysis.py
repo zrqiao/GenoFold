@@ -46,16 +46,17 @@ if __name__ == '__main__':
 
         for ss in sss:
             if ss[0].startswith('#'):
+                print(ss)
                 time = ss[1]
                 pfunc=0
             else:
                 # print(ss)
                 if len(ss[0]) >= SD_end:
                     seq = full_sequence[:len(ss[0])]
-                    if pfunc == 0:
-                        pfunc = nupack_functions.nupack_pfunc(seq, 37)
                     SD_ss = ss[0][SD_start:SD_end]
                     G = nupack_functions.nupack_ss_free_energy(seq, ss[0], 37)
+                    if pfunc == 0:
+                        pfunc = nupack_functions.nupack_pfunc(seq, 37)
                     nupack_prob = Domains.rate(G, 1)/pfunc
                     # norm_c[time] += nupack_prob
                     # data[time] += ss[1] * SD_ss.count('.') / (SD_end - SD_start)

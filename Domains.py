@@ -477,7 +477,7 @@ class SpeciesPool(object):
         if stationary:
             intermediate_population_arrays = \
                 preprocessing.normalize([[rate(species[0].get_G(), 1) for species in species_list]
-                                        for t in time_array], norm='l2')
+                                        for t in time_array], norm='l1', axis=1)
             return species_list, intermediate_population_arrays, time_array
 
         for i in range(self.size):  # Make it a REAL sparse matrix

@@ -11,7 +11,7 @@ from collections import defaultdict
 L_init = 10  # Initiation unit
 dL = 10  # elongation unit (also means CG unit)
 transcription_time = 0.1
-ddt=0.1
+ddt=0.5
 dt = transcription_time * dL  # Folding time for each elongation step (0.1 s/nt)
 population_size_limit = 100  # maximum type of strands in the pool
 MULTI_PROCESS = 32
@@ -35,13 +35,13 @@ def local_plot(ax_localpop, local_input_path, label):
         data_raw = local_input.readlines()
         ss_num = int(len(data_raw) / 3)
         sss=[]
-        prev_pop = np.zeros(int(516/ddt))
-        time_array = np.arange(0, 516, ddt)
+        prev_pop = np.zeros(int(520/ddt))
+        time_array = np.arange(0, 520, ddt)
         for i in range(ss_num):
             ss = data_raw[i * 3].rstrip('\n')
             times_raw = list(map(np.float, data_raw[i * 3 + 1].split()))
             populations_raw = list(map(np.float, data_raw[i * 3 + 2].split()))
-            populations = np.zeros(int(516/ddt))
+            populations = np.zeros(int(520/ddt))
             for j in range(len(times_raw)):
                 populations[int(times_raw[j]/ddt)] = populations_raw[j]
 
@@ -71,7 +71,7 @@ if __name__ == '__main__':
     for e_k in range(1, 16, 1):
         ax_localpop = fig.add_subplot(4, 4, e_k)
         k = 1 * 10 ** e_k
-        local_input_path = clargs.sequence + '_local_population_k' + '%e' % k
+        local_input_path = clargs.sequence + '_local_population_k' + '%.2g' % k
         label = '%.2g' % k
         local_plot(ax_localpop, local_input_path, label)
 
@@ -85,5 +85,5 @@ if __name__ == '__main__':
     plt.show()
 
     fig.savefig(clargs.sequence + '_local_population_evolution_summary.eps')
-
+    fig.savefig(clargs.sequence + '_local_population_evolution_summary.png')
     exit()

@@ -61,8 +61,8 @@ if __name__ == '__main__':
         print('k= %.2g'%k)
         data = defaultdict(np.float)
         local_structure_collection_data = defaultdict(lambda: defaultdict(np.float))
-        f = open(clargs.sequence + '_p_unbound_%e' % k + '.dat', 'w')
-        with open(clargs.sequence + '_k' + '%e' % k + '.dat', 'r+') as folding_input:
+        f = open(clargs.sequence + '_p_unbound_%.2g' % k + '.dat', 'w')
+        with open(clargs.sequence + '_k' + '%.2g' % k + '.dat', 'r+') as folding_input:
 
             sss = [(x.split()[0], np.float(x.split()[1]))
                    for x in folding_input.readlines()]
@@ -91,7 +91,7 @@ if __name__ == '__main__':
             data_p = np.array([list(data.keys()), list(data.values())])
             # data_p.transpose()
             # folding_input.close()
-        with open(clargs.sequence + '_local_population_k' + '%e' % k + '.dat', 'w+') as local_output:
+        with open(clargs.sequence + '_local_population_k' + '%.2g' % k + '.dat', 'w+') as local_output:
             for local_ss in local_structure_collection_data.keys():
                 local_output.write(local_ss+'\n')
                 local_output.write(' '.join(map(str, local_structure_collection_data[local_ss].keys())) + '\n')
@@ -158,7 +158,7 @@ if __name__ == '__main__':
             k = 1 * 10 ** e_k
             print('k= %.2g' % k)
             data = defaultdict(np.float)
-            with open(clargs.sequence + '_k' + '%e' % k + '.dat', 'r+') as folding_input:
+            with open(clargs.sequence + '_k' + '%.2g' % k + '.dat', 'r+') as folding_input:
                 sss = [(x.split()[0].rstrip('\n'), np.float(x.split()[1]))
                        for x in folding_input.readlines()]
 

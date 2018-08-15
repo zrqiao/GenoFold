@@ -11,7 +11,7 @@ from collections import defaultdict
 L_init = 10  # Initiation unit
 dL = 10  # elongation unit (also means CG unit)
 transcription_time = 0.1
-ddt=0.5
+ddt=0.1
 dt = transcription_time * dL  # Folding time for each elongation step (0.1 s/nt)
 population_size_limit = 100  # maximum type of strands in the pool
 MULTI_PROCESS = 32
@@ -45,7 +45,7 @@ def local_plot(ax_localpop, local_input_path, label):
             for j in range(len(times_raw)):
                 populations[int(times_raw[j]/ddt)] = populations_raw[j]
 
-            ax_localpop.bar(time_array, populations, bottom=prev_pop, label=ss)
+            ax_localpop.bar(time_array, populations, bottom=prev_pop, label=ss, width=ddt)
             prev_pop += populations
     ax_localpop.legend(loc='best')
 
@@ -53,7 +53,7 @@ def local_plot(ax_localpop, local_input_path, label):
 if __name__ == '__main__':
 
     plt.style.use('ggplot')
-    fig = plt.figure(figsize=(20, 20))
+    fig = plt.figure(figsize=(15, 15))
     # colors = [plt.cm.jet(lt) for lt in range(0, 8)]
     fig.add_axes()
 

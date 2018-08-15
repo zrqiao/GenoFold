@@ -1,2 +1,2 @@
-# RNA-nonequilibrium-folding
+# GenoFold
 A genetic algorithm based method to predict co-transcriptional folding

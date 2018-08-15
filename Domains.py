@@ -5,32 +5,58 @@ from collections import defaultdict
 import operator
 from multiprocessing import Pool
 import re
-from scipy.sparse import csc_matrix
+from scipy.sparse.linalg import expm_multiply
 from scipy.linalg import expm
 import copy
 import time
+from sklearn import preprocessing
 
 #Change following routines for other environments:
 Temperature = 37
 k0 = 1
 R = 1.9858775e-3  # G in kcal/mol
+rate_cutoff = 1e-20  # minimum allowed rate constant
 
 ##
 
 from numpy.linalg import eig, inv
 
 
-#def Propagate(M, p, time):
-    # e, U = eig(M)
+'''
+def Propagate(M, p, time):
+
+    e, U = eig(M)
+    # print(e)
     # the eigenvalues are distinct -- possibly complex, but
     # E will always be real
-    # Uinv = inv(U)
-    # E = np.real(np.dot(U, np.dot(np.exp(time*np.diag(e)), Uinv)))
-    # p1 = np.dot(p, E)
-    # return p1
+    Uinv = inv(U)
+    # print(np.exp(time*np.diag(e)))
+    E = np.real(np.dot(np.dot(U, np.diag(np.exp(time*e))), Uinv))
+    # print(E)
+    p1 = np.dot(p, E)
+    return p1
+'''
 
-def Propagate(M, p, time):
-    return np.dot(p, expm(time*M))
+
+def Propagate(M, p, dt, ddt=1):
+    time_1=time.time()
+    # time_series = np.arange(0, dt, ddt) + dt
+    if dt > ddt:
+        # intermediate_populations = expm_multiply(M.transpose(), p, ddt, dt, dt/ddt, True)
+        # intermediate_populations = np.zeros((dt/ddt, len(p), len(p)))
+        times = np.arange(0, dt, ddt) + ddt
+        intermediate_populations = [np.dot(expm(t*M.transpose()), p) for t in times]
+        
+    elif dt == ddt: 
+        intermediate_populations = [np.dot(expm(dt*M.transpose()), p)]
+
+    else:
+        print('Invalid differential time step')
+        return False
+    # print(time.time()-time_1)
+    return intermediate_populations
+    # return np.dot(p, expm(time*M))
+
 
 def similar(a, b):
     return SequenceMatcher(None, a, b).ratio()
@@ -38,7 +64,7 @@ def similar(a, b):
 
 def rate(dG, k):
     return k*np.exp(-dG/(R* (273.15+Temperature)))
-
+    # return k
 
 def disso(x) : return x.dissociate_energy()
 
@@ -89,9 +115,10 @@ class FoldonCollection(object):
             print("Error: no such foldon")
             return False
 
-    def new_foldon(self, sequence, l_bound, r_bound, domain_collection):  # foldon_collection is a DomainCollection
-        mfe = nupack_functions.nupack_mfe(sequence, Temperature)
-        new_foldon = domain_collection.get_domain(sequence, mfe, l_bound, r_bound)  # TODO: degeneracy
+    def new_foldon(self, sequence, l_bound, r_bound, domain_collection, ss=None):  # foldon_collection is a DomainCollection
+        if not ss:
+            ss = nupack_functions.nupack_mfe(sequence, Temperature)  # TODO: degeneracy
+        new_foldon = domain_collection.get_domain(sequence, ss, l_bound, r_bound)
         new_foldon.foldonize()
         if new_foldon not in self.collection[l_bound, r_bound]:
             self.add_foldon(new_foldon)  # Don't forget to modify
@@ -383,7 +410,7 @@ class Pathways(object):     #  Indices of a pathway should be two domain(for rob
             backward_rate = rate(backward_energy, k)
 
             # print(time2-time1)
-            
+            # print(backward_energy)
             # newforwardpathway = pathway(my_site,other_site, forward_rate)
             # newbackwardpathway = pathway(other_site,my_site, backward_rate)
             self.add(my_site, other_site, forward_rate)
@@ -431,7 +458,7 @@ class SpeciesPool(object):
         self.species[domain] = population
         return self
 
-    def evolution(self, pathways, time):
+    def evolution(self, pathways, dt, ddt, stationary=False):
         # print(self.size)
         rate_matrix = np.zeros((self.size, self.size))
         species_list = list(self.species.items())
@@ -443,10 +470,31 @@ class SpeciesPool(object):
                 rate_matrix[i][j] = pathways.get_rate(species_list[i][0], species_list[j][0])
             rate_matrix[i][i] = -np.sum(rate_matrix[i])
 
+        k_fastest = np.max(rate_matrix)
+        self.timestamp += dt
+        time_array = np.arange(0, dt, ddt) + self.timestamp + ddt
+
+        if stationary:
+            intermediate_population_arrays = \
+                preprocessing.normalize([[rate(species[0].get_G(), 1) for species in species_list]
+                                        for t in time_array], norm='l1', axis=1)
+            return species_list, intermediate_population_arrays, time_array
+
+        for i in range(self.size):  # Make it a REAL sparse matrix
+            for j in range(self.size):
+                if rate_matrix[i][j] < k_fastest * rate_cutoff:
+                    rate_matrix[i][j] = 0
+            rate_matrix[i][i] = -np.sum(rate_matrix[i])
+
         # print(list(population_array))
         # Master Equation
-        population_array = Propagate(rate_matrix, population_array, time)
-        self.timestamp += time
+        time_1 = time.time()
+        intermediate_population_arrays = Propagate(rate_matrix, population_array, dt, ddt=ddt)
+        time_2 = time.time()
+        # print(time_2-time_1)
+
+        population_array = intermediate_population_arrays[-1]
+
 
         # print(rate_matrix)
         # print(population_array)
@@ -455,7 +503,7 @@ class SpeciesPool(object):
         for i in range(self.size):
             self.update_population(species_list[i][0], population_array[i])
 
-        return self
+        return species_list, intermediate_population_arrays, time_array
 
     def selection(self, size_limit):
         if self.size > size_limit:

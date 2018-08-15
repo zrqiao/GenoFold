@@ -21,7 +21,7 @@
 \usepackage{algpseudocode}% http://ctan.org/pkg/algorithmicx
 
 \geometry{top=1in, bottom=1in, left=1in, right=1in}
-\linespread{1.5}
+%\linespread{1.5}
 
 \DeclareMathOperator*{\argmax}{argmax}
 \DeclareMathOperator*{\argmin}{argmin}
@@ -37,9 +37,10 @@
 \maketitle
 
 We developed a genetic algorithm based approach to simulate kinetics of co-transcriptional folding. Our method is built on two following assumptions:
-\paragraph{1} All populated RNA secondary structures (SS) are linkage of locally optimal or sub-optimal structures (foldons) at various folding sites;
+\paragraph{1} All populated RNA secondary structures (SS) are linkage of locally optimal or sub-optimal structures at various folding sites;
 \paragraph{2} Global structural rearrangement of a partial RNA segment is permitted only if it's folding to the optimal SS on that segment.
 \\
+
 Formally, we denote a domain $D_{A,\,B}$ as a segment between base $A$ and $B$ that all contacts on that segment are local. For simplicity, we denote \textbf{foldon}
 as domains with optimal secondary structures: $D^{foldon}_{A,\,B} = \text{MFE(sequence[A,B])}$. Note that $'.'$ is a trival example of foldon.
 Our assumption 1 can be rewritten as
@@ -48,7 +49,7 @@ Our assumption 1 can be rewritten as
 \end{equation}
 Where $\oplus$ represents a link operation. Note that all structural information of $D_{A,\,B}$ is encoded by the sequential representation $[A,\, i_1,\, ...,\, i_n,\, B]$;
  as a foldon is also a linkage of smaller foldons, there could be multiple way to represent $D_{A,\,B}$. Here we introduce \textbf{Irreducible Foldon Representation} (IFR) as
- sequential representations for which linkage of each adjacent foldons is not a foldon: $\forall k,\, D^{foldon}_{i_k, i_{k+1}} \oplus D^{foldon}_{i_{k+1}, i_{k+2}} \neq D^{foldon}_{i_{k}, i_{k+2}}$.
+ sequential representations for which linkage of every adjacent foldons is not another foldon: $\forall k,\, D^{foldon}_{i_k, i_{k+1}} \oplus D^{foldon}_{i_{k+1}, i_{k+2}} \neq D^{foldon}_{i_{k}, i_{k+2}}$.
  Then the sufficient and nessary condition for structural rearrangement is
 
 \begin{center}

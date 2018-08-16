@@ -35,6 +35,7 @@ def boltzmann_map(dat):
     time = dat[0]
     seq = dat[1]
     ss = dat[2]
+    # print(ss)
     G = nupack_functions.nupack_ss_free_energy(seq, ss, 37)
     bolz = Domains.rate(G, 1)
     return (time, ss, bolz)
@@ -76,14 +77,15 @@ if __name__ == '__main__':
 
         # data_p = np.array([list(data.keys()), list(data.values())])
 
+    pool2 = Pool()
+    data2 = pool2.map(pfunc_map, preprocess_data2)
+    pool2.close()
     pool = Pool()
     data1 = pool.map(boltzmann_map, preprocess_data1)
     pool.close()
-    pool.join()
-    data2 = pool.map(pfunc_map, preprocess_data2)
-    pool.close()
+
     for dat in data2:
-        pfuncs[data2[0]] = data2[1]
+        pfuncs[dat[0]] = dat[1]
     for dat in data1:
         time = dat[0]
         ss = dat[1]

@@ -36,7 +36,7 @@ def boltzmann_map(dat):
     seq = dat[1]
     ss = dat[2]
     print(ss)
-    G = nupack_functions.nupack_ss_free_energy(seq, ss[0], 37)
+    G = nupack_functions.nupack_ss_free_energy(seq, ss, 37)
     bolz = Domains.rate(G, 1)
     return (time, ss, bolz)
 

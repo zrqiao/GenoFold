@@ -1,5 +1,5 @@
 import subprocess, random, os, sys
-
+import numpy as np
 # Modify the following lines according to your NUPACK installation:
 nupack_path = os.environ['HOME'] + '/nupack3.2.2/build/bin'
 nupack_env = {'NUPACKHOME' : os.environ['HOME'] + '/nupack3.2.2'}
@@ -14,7 +14,7 @@ def nupack_free_energy(sequence, T):
     seq = rna_seq(sequence)
     with subprocess.Popen([nupack_path + '/pfunc', '-T', str(T)],
                           stdin=subprocess.PIPE, stdout=subprocess.PIPE, \
-                          stderr=subprocess.PIPE, env=nupack_env) as proc:
+                          stderr=subprocess.PIPE) as proc:
         nupack_input = bytes("%s\n" % seq, 'ascii')
         nupack_output, nupack_err = proc.communicate(nupack_input)
         dG = float(nupack_output.decode('ascii').split('\n')[-3])
@@ -26,7 +26,7 @@ def nupack_pfunc(sequence, T):
     seq = rna_seq(sequence)
     with subprocess.Popen([nupack_path + '/pfunc', '-T', str(T)],
                           stdin=subprocess.PIPE, stdout=subprocess.PIPE, \
-                          stderr=subprocess.PIPE, env=nupack_env) as proc:
+                          stderr=subprocess.PIPE) as proc:
         nupack_input = bytes("%s\n" % seq, 'ascii')
         nupack_output, nupack_err = proc.communicate(nupack_input)
         pfunc = float(nupack_output.decode('ascii').split('\n')[-2])

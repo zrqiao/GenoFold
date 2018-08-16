@@ -35,7 +35,6 @@ def boltzmann_map(dat):
     time = dat[0]
     seq = dat[1]
     ss = dat[2]
-    print(ss)
     G = nupack_functions.nupack_ss_free_energy(seq, ss, 37)
     bolz = Domains.rate(G, 1)
     return (time, ss, bolz)
@@ -65,23 +64,23 @@ if __name__ == '__main__':
 
         for ss in sss:
             if ss[0].startswith('#'):
+                print(ss)
                 time = ss[1]
-                seq = full_sequence[:len(ss[0])]
-                preprocess_data2.append((time, seq))
+                seq = full_sequence[:int(5*np.ceil(time/5))]
+                preprocess_data2.append([time, seq])
             else:
-
                 if len(ss[0]) >= SD_end:
-                    preprocess_data1.append((time, seq, ss[0]))
+                    preprocess_data1.append([time, seq, ss[0]])
                     # norm_c[time] += nupack_prob
                     # data[time] += ss[1] * SD_ss.count('.') / (SD_end - SD_start)
 
         # data_p = np.array([list(data.keys()), list(data.values())])
 
     pool = Pool()
-    data1 = boltzmann_map(preprocess_data1)
+    data1 = pool.map(boltzmann_map, preprocess_data1)
     pool.close()
     pool.join()
-    data2 = pfunc_map(preprocess_data2)
+    data2 = pool.map(pfunc_map, preprocess_data2)
     pool.close()
     for dat in data2:
         pfuncs[data2[0]] = data2[1]

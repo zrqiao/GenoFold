@@ -132,8 +132,6 @@ $\text{renormalize }\langle \text{ActivePool}.\textbf{population}\,|$
 
 [algorithm:1]
 
-Results
--------
 
 The only remaining free parameter to be determined is $k_0/k_T$, the
 ratio of pre-exponential factor in Arrhenius rate formulation and

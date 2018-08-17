@@ -65,7 +65,6 @@ def nupack_subopt(sequence, T, gap):
     sss = []
     with open(tmp + '.subopt', 'r') as f:
         flag = False
-        dat = f.readlines()
         for line in f:
             if len(line) > 1 and all(c in '(.)' for c in line.strip()):
                 ss = line.strip()

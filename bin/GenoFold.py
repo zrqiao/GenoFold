@@ -1,5 +1,5 @@
 import numpy as np
-from bin import Domains
+import Domains
 import os
 import argparse, gzip, pickle
 import copy

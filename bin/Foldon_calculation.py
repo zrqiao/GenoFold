@@ -1,5 +1,5 @@
 import numpy as np
-from bin import Domains
+import Domains
 import argparse
 from multiprocessing import Pool
 import subprocess, random, os
@@ -38,6 +38,7 @@ def nupack_subopt(sequence, T=37, gap=subopt_gap):
     # Use NUPACK to calculate the minimum-free-energy secondary structure of a sequence
     # NOTE: Returns a secondary structure in the (((.))) notation
     seq = sequence
+    # print(seq)
     rint = int(random.random() * 1.e9)
     tmp = nupack_path + '/tmp/%d' % rint
     with open(tmp + '.in', 'w') as f:
@@ -47,7 +48,6 @@ def nupack_subopt(sequence, T=37, gap=subopt_gap):
     sss = []
     with open(tmp + '.subopt', 'r') as f:
         flag = False
-        dat = f.readlines()
         for line in f:
             if len(line) > 1 and all(c in '(.)' for c in line.strip()):
                 ss = line.strip()

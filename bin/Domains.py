@@ -1,4 +1,4 @@
-from bin import nupack_functions
+import nupack_functions
 from difflib import SequenceMatcher
 import numpy as np
 from collections import defaultdict

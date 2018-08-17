@@ -1,4 +1,4 @@
-with open("RNA.in",'r') as m:
+with open("folA_WT.in",'r') as m:
     sequence=m.readline()
 
 print('RNA='+sequence)

@@ -21,21 +21,21 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('sequence', type=str, help="RNA sequence prefix (one line)")
+    parser.add_argument('--working-path', type=str, default='.', help="Path to store outputs")
     parser.add_argument('--k', type=np.float, default=1., \
                         help="pre exponential factor")
-    parser.add_argument('--path', type=str, default=None, help="Path to store foldons")
+    parser.add_argument('--foldons-path', type=str, default=None, help="Path of stored foldons")
     parser.add_argument('--stationary', action='store_true', help="Only calculate equilibrium distribution [False]")
     parser.add_argument('--post', action='store_true', help="Continue calculation after transcription")
     parser.add_argument('--CG-length', type=int, default=dL, help="coarse grained unit")
     parser.add_argument('--pool-size', type=int, default=population_size_limit, help="Active pool limit")
     parser.add_argument('--chk', action='store_true', help="Save checkpoint files")
-    parser.add_argument('--output', type=str, default=None, help="Folder to store foldons")
-
     clargs = parser.parse_args()
+
     if not clargs.stationary:
-        prefix = clargs.sequence + '_k' + '%.2g' % clargs.k
+        prefix = clargs.working_path + '/k' + '%.2g' % clargs.k
     else:
-        prefix = clargs.sequence + '_stationary'
+        prefix = clargs.working_path + '/kinf'
 
     dL = clargs.CG_length
 
@@ -54,8 +54,8 @@ if __name__ == '__main__':
     log = open(prefix + '.log', 'w+')
     log.write('Initializing structure building block collections...')
     log.flush()
-    if clargs.path:
-        with open(clargs.path, 'r+') as foldons_data:
+    if clargs.foldons_path:
+        with open(clargs.foldons_path, 'r+') as foldons_data:
             for line in foldons_data.readlines():
                 # print(line)
                 lb_str, rb_str, ss = line.rstrip('\n').split()
@@ -65,8 +65,13 @@ if __name__ == '__main__':
     log.flush()
     # NOTE: Initiate transcription
     init_segment = full_sequence[:L_init]
-    init_foldon = all_foldons.new_foldon(init_segment, 0, L_init, all_domains)
-    active_species_pool.add_species(init_foldon, population=1.0)
+    if not clargs.foldons_path:  # no pre-calculated foldon data
+        all_foldons.new_foldon(init_segment, 0, L_init, all_domains)
+    init_foldons = all_foldons.find_foldons(0, L_init)
+    init_pfunc = np.sum([Domains.boltzmann_factor(fd.get_G()) for fd in init_foldons])
+    for init_foldon in init_foldons:
+        active_species_pool.add_species(
+            init_foldon, population=Domains.boltzmann_factor(init_foldon.get_G()))/init_pfunc
     sequence_length = len(full_sequence)
     current_length = L_init
     active_species_pool.timestamp += dt
@@ -106,7 +111,7 @@ if __name__ == '__main__':
         l_bounds = np.arange(0, current_length, dL)
         # multi_pool = Pool(MULTI_PROCESS)
 
-        if not clargs.path:  # no pre-calculated foldon data
+        if not clargs.foldons_path:  # no pre-calculated foldon data
             log.write('Calculate new foldons...')
             log.flush()
             for l_bound in l_bounds:

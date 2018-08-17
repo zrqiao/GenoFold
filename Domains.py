@@ -16,7 +16,7 @@ Temperature = 37
 k0 = 1
 R = 1.9858775e-3  # G in kcal/mol
 rate_cutoff = 1e-20  # minimum allowed rate constant
-
+subopt_gap=0.99
 ##
 
 from numpy.linalg import eig, inv
@@ -66,10 +66,15 @@ def rate(dG, k):
     return k*np.exp(-dG/(R* (273.15+Temperature)))
     # return k
 
-def disso(x) : return x.dissociate_energy()
+
+def boltzmann_factor(dG):
+    return rate(dG, 1)
 
 
-def loopf(x) : return x.loop_formation_energy()
+def disso(x): return x.dissociate_energy()
+
+
+def loopf(x): return x.loop_formation_energy()
 
 
 class DomainsCollection(object):
@@ -117,13 +122,16 @@ class FoldonCollection(object):
 
     def new_foldon(self, sequence, l_bound, r_bound, domain_collection, ss=None):  # foldon_collection is a DomainCollection
         if not ss:
-            ss = nupack_functions.nupack_mfe(sequence, Temperature)  # TODO: degeneracy
-        new_foldon = domain_collection.get_domain(sequence, ss, l_bound, r_bound)
-        new_foldon.foldonize()
-        if new_foldon not in self.collection[l_bound, r_bound]:
-            self.add_foldon(new_foldon)  # Don't forget to modify
+            sss = nupack_functions.nupack_subopt(sequence, Temperature, subopt_gap)  # NOTE: subopt
+            for ss in sss:
+                self.new_foldon(sequence, l_bound, r_bound, domain_collection, ss=ss)
+            return True
+        newfoldon = domain_collection.get_domain(sequence, ss, l_bound, r_bound)
+        newfoldon.foldonize()
+        if newfoldon not in self.collection[l_bound, r_bound]:
+            self.add_foldon(newfoldon)  # Don't forget to modify
         # print(new_foldon.get_IFR())
-        return new_foldon
+        return True
 
 
 class Domain(object):
@@ -155,10 +163,10 @@ class Domain(object):
         return '^'.join(map(str, self.IFR))  # all information is encoded by IFR
 
     def get_domain(self, sequence, structure, l_bound, r_bound):#Get another domain from collection or create a new one
-        #key = (sequence, structure, lbound, rbound)
-        #if key in self.collection.keys():
+        # key = (sequence, structure, lbound, rbound)
+        # if key in self.collection.keys():
         #    return self.collection[key]
-        #else:
+        # else:
         return self.collection.get_domain(sequence, structure, l_bound, r_bound)
 
     def get_sequence(self):
@@ -170,12 +178,12 @@ class Domain(object):
     def get_IFR(self):
         return self.IFR
 
-    def foldonize(self):#If self is a foldon
+    def foldonize(self):  # If self is a foldon
         self.is_foldon = True
-        self.IFR = np.array([self.l_bound, self.r_bound]) #overwrite
+        self.IFR = np.array([self.l_bound, self.r_bound])  # overwrite
         return True
 
-    def get_elements(self): #find closed domains. NOTE: No peudo knots
+    def get_elements(self):  # find closed domains. NOTE: No peudo knots
         if not self.elements:
             unpaired = []
             elements = []
@@ -220,7 +228,7 @@ class Domain(object):
         return self.elements
 
     def get_G(self):  # NOTE: G is not initialized, has to be called explicitly before k calculation
-        if self.G == None:  # NOTE:0.00=False!
+        if self.G is None:  # NOTE:0.00=False!
             if self.l_bound !=0:  # Redirect to domain with the same ss
                 self.G = self.get_domain(self.sequence, self.structure, 0, self.length).get_G()
             else:
@@ -359,7 +367,7 @@ class Pathways(object):     #  Indices of a pathway should be two domain(for rob
                 self.add(domain2, domain1, backward_rate)
                 return forward_rate, backward_rate
         sub_l_bound, sub_r_bound = trial
-        if sub_l_bound == domain1.l_bound and sub_r_bound == domain2.r_bound:#This is the minimum rearrangement site
+        if sub_l_bound == domain1.l_bound and sub_r_bound == domain2.r_bound:  # This is the minimum rearrangement site
             my_site, other_site= source, sink
         else:
             my_site = source.get_domain(source.sequence[sub_l_bound-source.l_bound:sub_r_bound-source.l_bound],
@@ -485,20 +493,9 @@ class SpeciesPool(object):
                 if rate_matrix[i][j] < k_fastest * rate_cutoff:
                     rate_matrix[i][j] = 0
             rate_matrix[i][i] = -np.sum(rate_matrix[i])
-
-        # print(list(population_array))
         # Master Equation
-        time_1 = time.time()
         intermediate_population_arrays = Propagate(rate_matrix, population_array, dt, ddt=ddt)
-        time_2 = time.time()
-        # print(time_2-time_1)
-
         population_array = intermediate_population_arrays[-1]
-
-
-        # print(rate_matrix)
-        # print(population_array)
-
         # Remapping
         for i in range(self.size):
             self.update_population(species_list[i][0], population_array[i])
@@ -523,12 +520,12 @@ def recombination(strand, current_length, all_foldons, all_domains, old_species_
             for overlapping_foldon in all_foldons.find_foldons(rearrange_point, current_length):
                 active_species_pool.add_species(overlapping_foldon)
         elif rearrange_point == strand.r_bound:
-            for terminal_foldon in all_foldons.find_foldons(strand.r_bound, current_length):
-                # print(terminal_foldon)
-                # print(terminal_foldon.get_IFR())
+            terminal_set = all_foldons.find_foldons(strand.r_bound, current_length)
+            terminal_pfunc = np.sum([boltzmann_factor(fd.get_G()) for fd in terminal_set])
+            for terminal_foldon in terminal_set:
                 active_species_pool.add_species(strand.elongate(terminal_foldon),
-                                                population=old_species_pool.get_population(strand) /
-                                                len(all_foldons.find_foldons(strand.r_bound, current_length)))
+                                                population=old_species_pool.get_population(strand) *
+                                                boltzmann_factor(terminal_foldon.get_G()) / terminal_pfunc)
         else:
             for overlapping_foldon in all_foldons.find_foldons(rearrange_point, current_length):
                 unrearranged_domain = all_domains.get_domain(strand.get_sequence()[0:rearrange_point],

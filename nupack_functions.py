@@ -51,6 +51,7 @@ def nupack_mfe(sequence, T):
     os.remove(tmp + '.mfe')
     return ss
 
+
 def nupack_subopt(sequence, T, gap):
     # Use NUPACK to calculate the minimum-free-energy secondary structure of a sequence
     # NOTE: Returns a secondary structure in the (((.))) notation
@@ -61,29 +62,17 @@ def nupack_subopt(sequence, T, gap):
         f.write("%s\n" % seq)
         f.write("%f\n" % gap)
     subprocess.call([nupack_path + '/subopt', '-T', str(T), tmp])  # , env=nupack_env) Using system path env
-    with open(tmp + '.mfe', 'r') as f:
+    sss = []
+    with open(tmp + '.subopt', 'r') as f:
         flag = False
+        dat = f.readlines()
         for line in f:
             if len(line) > 1 and all(c in '(.)' for c in line.strip()):
                 ss = line.strip()
+                sss.append(ss)
     os.remove(tmp + '.in')
-    os.remove(tmp + '.mfe')
-    return ss
-
-def nupack_mfe_test():
-    # Use NUPACK to calculate the minimum-free-energy secondary structure of a sequence
-    # NOTE: Returns a secondary structure in the (((.))) notation
-    tmp = nupack_path + '/tmp/test'
-    subprocess.call([nupack_path + '/mfe', '-T', str(37), tmp])
-    f = open(tmp + '.mfe', 'r')
-    flag = False
-    for line in f:
-        if len(line) > 1 and all(c in '(.)' for c in line.strip()):
-            ss = line.strip()
-    f.close()
-    os.remove(tmp + '.in')
-    os.remove(tmp + '.mfe')
-    return ss
+    os.remove(tmp + '.subopt')
+    return sss
 
 def nupack_ss_free_energy(sequence, ss, T):
     # Use NUPACK to calculate the free energy of a specific secondary structure

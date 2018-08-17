@@ -5,7 +5,8 @@ from matplotlib import gridspec
 import matplotlib as mpl
 import argparse, math, random, gzip, pickle, types
 from collections import defaultdict
-
+import os
+import brewer2mpl
 
 # Change following routines for other environments:
 L_init = 10  # Initiation unit
@@ -17,20 +18,89 @@ MULTI_PROCESS = 32
 SD_start, SD_end = 21, 28
 equi_p_unbound = [0.0414220, 0.0612670, 0.0839040, 0.9764600, 0.9300200, 0.0861740, 0.2976000]
 
+
 def similar(a, b):
     return SequenceMatcher(None, a, b).ratio()
 
 
+def localss_population_processing(input_prefix):
+    local_structure_collection_data = defaultdict(lambda: defaultdict(np.float))
+    with open(input_prefix + '.dat', 'r+') as folding_input:
+        sss = [(x.split()[0], np.float(x.split()[1]))
+               for x in folding_input.readlines()]
+        for ss in sss:
+            if ss[0].startswith('#'):
+                time = ss[1]
+            else:
+                # print(ss)
+                if len(ss[0]) >= SD_end:
+                    SD_ss = ss[0][SD_start:SD_end]
+                    local_structure_collection_data[SD_ss][time] += ss[1]
+    with open(input_prefix + '_local_population_k' + '%.2g' % k + '.dat', 'w+') as local_output:
+        for local_ss in local_structure_collection_data.keys():
+            local_output.write(local_ss + '\n')
+            local_output.write(' '.join(map(str, local_structure_collection_data[local_ss].keys())) + '\n')
+            local_output.write(' '.join(map(str, local_structure_collection_data[local_ss].values())) + '\n')
+
+
+def data_ploting(ax_punbound, input_prefix, label, start_index, end_index):
+    data_punbound = defaultdict(np.float)
+    if not os.path.exists(input_prefix + '_p_unbound'):
+        os.makedirs(input_prefix + '_p_unbound')
+    f = open(input_prefix + f'_p_unbound/base{start_index}_{end_index}.dat', 'w')
+    with open(input_prefix + '.dat', 'r+') as folding_input:
+        sss = [(x.split()[0], np.float(x.split()[1]))
+               for x in folding_input.readlines()]
+        for ss in sss:
+            if ss[0].startswith('#'):
+                time = ss[1]
+            else:
+                # print(ss)
+                if len(ss[0]) >= SD_end:
+                    target_ss = ss[0][start_index:end_index]
+                    data_punbound[time] += ss[1] * target_ss.count('.') / (end_index - start_index)
+        data_plot = np.array([list(data_punbound.keys()), list(data_punbound.values())])
+
+    ax_punbound.plot(data_plot[0], data_plot[1], label=label)
+    for d in data_punbound.items():
+        f.write(f'{d[0]}  {d[1]}\n')
+    f.close()
+
+
+def data_ploting_equ(ax_punbound, input_prefix, label, start_index, end_index):
+    data_punbound = defaultdict(np.float)
+    if not os.path.exists(input_prefix + '_p_unbound'):
+        os.makedirs(input_prefix + '_p_unbound')
+    f = open(input_prefix + f'_p_unbound/base{start_index}_{end_index}.dat', 'w')
+    with open('folA_WT/summary_pairs.dat', 'r+') as folding_input:  # NOTE: Format here need to be unified!
+        pairs_data = [list(map(np.float, x.split())) for x in folding_input.readlines()]
+        for dat in pairs_data:
+            if len(dat) >= end_index:
+                time = len(dat)-1  # NOTE: should be len(dat) for later version
+                data_punbound[time] += np.sum(dat[start_index:end_index]) / (end_index - start_index)
+        data_plot = np.array([list(data_punbound.keys()), list(data_punbound.values())])
+
+    ax_punbound.plot(data_plot[0], data_plot[1], label=label)
+    for d in data_punbound.items():
+        f.write(f'{d[0]}  {d[1]}\n')
+    f.close()
+
+
 if __name__ == '__main__':
 
-    plt.style.use('ggplot')
-    fig = plt.figure(figsize=(10, 10))
-    # colors = [plt.cm.jet(lt) for lt in range(0, 8)]
-    fig.add_axes()
-
+    # plt.style.use('bmh')
     # mpl.rcParams['axes.color_cycle'] = colors
-    mpl.rcParams['axes.titlesize'] = 10
-    mpl.rcParams['axes.titleweight'] = 10
+    mpl.rcParams['axes.titlesize'] = 20
+    mpl.rcParams['axes.titleweight'] = 20
+    params = {
+        'axes.labelsize': 15,
+        'legend.fontsize': 12.5,
+        'xtick.labelsize': 15,
+        'ytick.labelsize': 15,
+        'text.usetex': False,
+        'figure.figsize': [15, 9]
+    }
+    mpl.rcParams.update(params)
     parser = argparse.ArgumentParser()
     parser.add_argument('sequence', type=str, help="RNA sequence (one line)")
     # parser.add_argument('--k', type=np.float, default=1., \
@@ -40,163 +110,83 @@ if __name__ == '__main__':
         full_sequence = sequence_file.readline().rstrip('\n')
 
     # Start IO
-    fig = plt.figure(figsize=(8, 6))
+    fig = plt.figure()
     fig.add_axes()
-    NUM_COLORS = 16
-    cm = plt.get_cmap('gist_rainbow')
-    ax_pbound = fig.add_subplot(111)
-    ax_pbound.set_color_cycle([cm(1. * i / NUM_COLORS) for i in range(NUM_COLORS)])
+    NUM_COLORS = 6
+    cm = plt.get_cmap('Set1')
+    ax_punbound = fig.add_subplot(111)
+    ax_punbound.set_color_cycle([cm(1. * i / NUM_COLORS) for i in range(NUM_COLORS)])
 
     # ax_localpop.set_title(f'Average p_unbound for base[-9](G) {clargs.sequence}')
-    ax_pbound.set_title(f'Average p_unbound of SD sequence {clargs.sequence}')
-    ax_pbound.set_xlabel('Transcription time', fontsize=12.5)
-    ax_pbound.set_ylabel(r'$p_{unbound}$', fontsize=12.5)
+    ax_punbound.set_title(f'{clargs.sequence} '+r'Average SD $p_{unbound}$')
+    ax_punbound.set_xlabel('Transcription time')
+    ax_punbound.set_ylabel(r'$p_{unbound}$')
+    ax_punbound.grid(axis='y', color="0.9", linestyle='-', linewidth=1)
     # ax_localpop.set_yscale('log')
     # ax_localpop.set_xscale('log')
     # ax_localpop.set_ylim(1e-5, 1.5)
     # ax_localpop.set_ylim(0.0, 1.1)
 
-    for e_k in range(1, 16, 1):
+    for e_k in range(1, 15, 3):
         k = 1*10**e_k
         print('k= %.2g'%k)
-        data = defaultdict(np.float)
-        local_structure_collection_data = defaultdict(lambda: defaultdict(np.float))
-        f = open(clargs.sequence + '_p_unbound_%.2g' % k + '.dat', 'w')
-        with open(clargs.sequence + '_k' + '%.2g' % k + '.dat', 'r+') as folding_input:
-
-            sss = [(x.split()[0], np.float(x.split()[1]))
-                   for x in folding_input.readlines()]
-
-            for ss in sss:
-                if ss[0].startswith('#'):
-                    time = ss[1]
-                else:
-                    # print(ss)
-                    if len(ss[0]) >= SD_end:
-                        # time = (len(ss[0])-L_init) * transcription_time
-                        # print('N=' + str(N) + ' nt')
-                        # f.write('#N=' + str(N) + ' nt')
-                        # sim = np.zeros(len(structure))
-                        SD_ss = ss[0][SD_start:SD_end]
-                        data[time] += ss[1] * SD_ss.count('.')/(SD_end-SD_start)
-                        
-                        local_structure_collection_data[SD_ss][time] += ss[1]
-                        # print(data[time])
-                        # for i in range(len(first_sequences)):
-                        #     temp_cmp = []
-                        #     for cmpseq in first_sequences:
-                        #         temp_cmp.append(similar(cmpseq, first_sequences[i]))
-                        #     sim[i + N] = np.average(np.array(temp_cmp))
-                        # print(sim)
-            data_p = np.array([list(data.keys()), list(data.values())])
-            # data_p.transpose()
-            # folding_input.close()
-        with open(clargs.sequence + '_local_population_k' + '%.2g' % k + '.dat', 'w+') as local_output:
-            for local_ss in local_structure_collection_data.keys():
-                local_output.write(local_ss+'\n')
-                local_output.write(' '.join(map(str, local_structure_collection_data[local_ss].keys())) + '\n')
-                local_output.write(' '.join(map(str, local_structure_collection_data[local_ss].values())) + '\n')
-
-        ax_pbound.plot(data_p[0], data_p[1], label=r'$k/k_T$ = ' + '%.2g' % k )
-        for d in data.items():
-            f.write(f'{d[0]}  {d[1]}\n')
-        f.close()
+        prefix = clargs.sequence + '_k' + '%.2g' % k
+        label = r'$k/k_T$ = ' + '%.2g' % k
+        # localss_population_processing(prefix)
+        data_ploting(ax_punbound, prefix, label, SD_start, SD_end)
 
     print('k= inf')
     data = defaultdict(np.float)
     local_structure_collection_data = defaultdict(lambda: defaultdict(np.float))
-    f = open(clargs.sequence + '_p_unbound_inf' + '.dat', 'w')
-    with open(clargs.sequence + '_stationary' + '.dat', 'r+') as folding_input:
+    prefix = clargs.sequence + '_k' + 'inf'
+    label = r'$k/k_T$ = ' + 'inf'
+    # localss_population_processing(prefix)
+    data_ploting(ax_punbound, prefix, label, SD_start, SD_end)
 
-        sss = [(x.split()[0], np.float(x.split()[1]))
-               for x in folding_input.readlines()]
-
-        for ss in sss:
-            if ss[0].startswith('#'):
-                time = ss[1]
-            else:
-                # print(ss)
-                if len(ss[0]) >= SD_end:
-                    SD_ss = ss[0][SD_start:SD_end]
-                    data[time] += ss[1] * SD_ss.count('.')/(SD_end-SD_start)
-                    local_structure_collection_data[SD_ss][time] += ss[1]
-        data_p = np.array([list(data.keys()), list(data.values())])
-
-    with open(clargs.sequence + '_local_population_k' + 'inf' + '.dat', 'w+') as local_output:
-        for local_ss in local_structure_collection_data.keys():
-            local_output.write(local_ss + '\n')
-            local_output.write(' '.join(map(str, local_structure_collection_data[local_ss].keys())) + '\n')
-            local_output.write(' '.join(map(str, local_structure_collection_data[local_ss].values())) + '\n')
-
-    ax_pbound.plot(data_p[0], data_p[1], label=r'$k/k_T$ = ' + 'inf' )
-    for d in data.items():
-        f.write(f'{d[0]}  {d[1]}\n')
-    f.close()
-
-    ax_pbound.plot(data_p[0], np.repeat(np.average(equi_p_unbound), len(data_p[0])), label='equilibrium')
-    ax_pbound.legend(loc='best')
+    prefix = clargs.sequence + '_equilibrium'
+    label = 'Equilibrium'
+    data_ploting_equ(ax_punbound, prefix, label, SD_start, SD_end)
+    ax_punbound.legend(loc='best')
     # fig.tight_layout()
     plt.show()
 
     fig.savefig(clargs.sequence + f'_p_unbound_SD_k_tuning.eps')
 
-    for base_position in range(0, 7):
+    for base_position in range(0, 7):  # note: Relative to SD_start
         base_gene_position = base_position-14
-        fig = plt.figure(figsize=(8, 6))
+        fig = plt.figure()
         fig.add_axes()
-        ax_pbound = fig.add_subplot(111)
-        ax_pbound.set_color_cycle([cm(1. * i / NUM_COLORS) for i in range(NUM_COLORS)])
+        ax_punbound = fig.add_subplot(111)
+        ax_punbound.set_color_cycle([cm(1. * i / NUM_COLORS) for i in range(NUM_COLORS)])
         # ax_localpop.set_title(f'Average p_unbound for base[-9](G) {clargs.sequence}')
-        ax_pbound.set_title(f'p_unbound of base [{base_gene_position}] {clargs.sequence}')
-        ax_pbound.set_xlabel('Transcription time', fontsize=12.5)
-        ax_pbound.set_ylabel(r'$p_{unbound}$', fontsize=12.5)
-        ax_pbound.set_yscale('log')
+        ax_punbound.set_title(f'{clargs.sequence} base [{base_gene_position}] '+r'$p_{unbound}$:')
+        # ax_punbound.set_title(f'{clargs.sequence} base [{base_position}] '+r'$p_{unbound}$:')
+        ax_punbound.set_xlabel('Transcription time')
+        ax_punbound.set_ylabel(r'$p_{unbound}$')
+        # ax_punbound.set_yscale('log')
         # ax_localpop.set_xscale('log')
-        ax_pbound.set_ylim(1e-4, 1.5)
+        # ax_punbound.set_ylim(1e-4, 1.1)
+        ax_punbound.grid(axis='y', color="0.9", linestyle='-', linewidth=1)
 
-        for e_k in range(1, 16, 1):
+        for e_k in range(1, 15, 3):
             k = 1 * 10 ** e_k
             print('k= %.2g' % k)
-            data = defaultdict(np.float)
-            with open(clargs.sequence + '_k' + '%.2g' % k + '.dat', 'r+') as folding_input:
-                sss = [(x.split()[0].rstrip('\n'), np.float(x.split()[1]))
-                       for x in folding_input.readlines()]
-
-                for ss in sss:
-                    if ss[0].startswith('#'):
-                        time = ss[1]
-                    else:
-                        # print(time)
-                        if len(ss[0]) >= SD_end:
-                            SD_ss = ss[0][SD_start:SD_end]
-                            data[time] += ss[1] * SD_ss[base_position].count('.')
-                data_p = np.array([list(data.keys()), list(data.values())])
-                # data_p.transpose()
-            # print(data_p)
-            ax_pbound.plot(data_p[0], data_p[1], label=r'$k/k_T$ = ' + '%.2g' % k )
+            prefix = clargs.sequence + '_k' + '%.2g' % k
+            label = r'$k/k_T$ = ' + '%.2g' % k
+            data_ploting(ax_punbound, prefix, label, SD_start+base_position, SD_start+base_position+1)
 
         print('k= inf')
         data = defaultdict(np.float)
-        with open(clargs.sequence + '_stationary' + '.dat', 'r+') as folding_input:
+        local_structure_collection_data = defaultdict(lambda: defaultdict(np.float))
+        prefix = clargs.sequence + '_k' + 'inf'
+        label = r'$k/k_T$ = ' + 'inf'
+        data_ploting(ax_punbound, prefix, label, SD_start+base_position, SD_start+base_position+1)
 
-            sss = [(x.split()[0], np.float(x.split()[1]))
-                   for x in folding_input.readlines()]
+        prefix = clargs.sequence + '_equilibrium'
+        label = 'Equilibrium'
+        data_ploting_equ(ax_punbound, prefix, label, SD_start+base_position, SD_start+base_position+1)
 
-            for ss in sss:
-                if ss[0].startswith('#'):
-                    time = ss[1]
-                else:
-                    # print(ss)
-                    if len(ss[0]) >= SD_end:
-                        SD_ss = ss[0][SD_start:SD_end]
-                        data[time] += ss[1] * SD_ss[base_position].count('.')
-            data_p = np.array([list(data.keys()), list(data.values())])
-
-        ax_pbound.plot(data_p[0], data_p[1], label=r'$k/k_T$ = ' + 'inf' )
-        ax_pbound.plot(data_p[0], np.repeat(equi_p_unbound[base_position],
-                                            len(data_p[0])), label='equilibrium')
-
-        ax_pbound.legend(loc='best')
+        ax_punbound.legend(loc='best')
         # fig.tight_layout()
         plt.show()
 

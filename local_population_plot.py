@@ -11,7 +11,7 @@ from collections import defaultdict
 L_init = 10  # Initiation unit
 dL = 10  # elongation unit (also means CG unit)
 transcription_time = 0.1
-ddt=0.1
+ddt = 1
 dt = transcription_time * dL  # Folding time for each elongation step (0.1 s/nt)
 population_size_limit = 100  # maximum type of strands in the pool
 MULTI_PROCESS = 32
@@ -85,5 +85,5 @@ if __name__ == '__main__':
     plt.show()
 
     fig.savefig(clargs.sequence + '_local_population_evolution_summary.eps')
-    fig.savefig(clargs.sequence + '_local_population_evolution_summary.png')
+    # fig.savefig(clargs.sequence + '_local_population_evolution_summary.png')
     exit()

@@ -17,8 +17,6 @@ fig.add_axes()
 #mpl.rcParams['axes.color_cycle'] = colors
 mpl.rcParams['axes.titlesize']=20
 mpl.rcParams['axes.titleweight'] = 15
-TPTDistribution=np.array([])
-
 
 fig = plt.figure(figsize=(10, 7.5))
 fig.add_axes()

@@ -32,6 +32,7 @@ def nupack_pfunc(sequence, T):
         pfunc = float(nupack_output.decode('ascii').split('\n')[-2])
     return pfunc
 
+
 def nupack_mfe(sequence, T):
     # Use NUPACK to calculate the minimum-free-energy secondary structure of a sequence
     # NOTE: Returns a secondary structure in the (((.))) notation
@@ -40,7 +41,26 @@ def nupack_mfe(sequence, T):
     tmp = nupack_path + '/tmp/%d' % rint
     with open(tmp + '.in', 'w') as f:
         f.write("%s\n" % seq)
-    subprocess.call([nupack_path + '/mfe', '-T', str(T), tmp]) #, env=nupack_env) #Using system path env
+    subprocess.call([nupack_path + '/mfe', '-T', str(T), tmp])  # , env=nupack_env) #Using system path env
+    with open(tmp + '.mfe', 'r') as f:
+        flag = False
+        for line in f:
+            if len(line) > 1 and all(c in '(.)' for c in line.strip()):
+                ss = line.strip()
+    os.remove(tmp + '.in')
+    os.remove(tmp + '.mfe')
+    return ss
+
+def nupack_subopt(sequence, T, gap):
+    # Use NUPACK to calculate the minimum-free-energy secondary structure of a sequence
+    # NOTE: Returns a secondary structure in the (((.))) notation
+    seq = rna_seq(sequence)
+    rint = int(random.random() * 1.e9)
+    tmp = nupack_path + '/tmp/%d' % rint
+    with open(tmp + '.in', 'w') as f:
+        f.write("%s\n" % seq)
+        f.write("%f\n" % gap)
+    subprocess.call([nupack_path + '/subopt', '-T', str(T), tmp])  # , env=nupack_env) Using system path env
     with open(tmp + '.mfe', 'r') as f:
         flag = False
         for line in f:

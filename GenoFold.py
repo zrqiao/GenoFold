@@ -69,7 +69,8 @@ if __name__ == '__main__':
     active_species_pool.add_species(init_foldon, population=1.0)
     sequence_length = len(full_sequence)
     current_length = L_init
-    step = 0
+    active_species_pool.timestamp += dt
+    step = 1
     # print('Population size: '+str(active_species_pool.size))
 
     # Start IO
@@ -135,13 +136,13 @@ if __name__ == '__main__':
         # NOTE: population dynamics (master equation)
 
         log.write('Population evolution... \n')
-        log.write('Population size before selection: '+str(active_species_pool.size)+'\n')
+        log.write('Population size before selection: ' + str(active_species_pool.size)+'\n')
         log.flush()
         species_list, intermediate_population_arrays, time_array = \
             active_species_pool.evolution(all_pathways, dt, ddt, stationary=clargs.stationary)
         active_species_pool.selection(population_size_limit)
         log.flush()
-        log.write('Time: %d \n'%active_species_pool.timestamp )
+        log.write('Time: %d \n' % active_species_pool.timestamp )
         log.write('Population size after selection: '+str(active_species_pool.size)+'\n')
         log.write('Selection finished \n')
 

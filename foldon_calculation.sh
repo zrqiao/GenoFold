@@ -10,8 +10,7 @@ sequence=ATACCCGTTTTTTGGGCTAACAGGAGGAATTACATATGATCAGTCTGATTGCGGCGTTAGCGGTAGATCGC
 
 module load python
 
-
-python Foldon_calculation.py folA_WT/RNA --path $1
+python bin/Foldon_calculation.py folA_WT/RNA --path $1
 
 
 # monitor output (need formatted string)

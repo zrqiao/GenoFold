@@ -11,7 +11,7 @@ from collections import defaultdict
 L_init = 10  # Initiation unit
 dL = 10  # elongation unit (also means CG unit)
 transcription_time = 0.1
-ddt=1
+ddt = 1
 dt = transcription_time * dL  # Folding time for each elongation step (0.1 s/nt)
 population_size_limit = 100  # maximum type of strands in the pool
 MULTI_PROCESS = 32
@@ -53,7 +53,7 @@ def local_plot(ax_localpop, local_input_path, label):
 if __name__ == '__main__':
 
     plt.style.use('ggplot')
-    fig = plt.figure(figsize=(12, 10))
+    fig = plt.figure(figsize=(15, 15))
     # colors = [plt.cm.jet(lt) for lt in range(0, 8)]
     fig.add_axes()
 
@@ -62,28 +62,30 @@ if __name__ == '__main__':
     mpl.rcParams['axes.titleweight'] = 10
     parser = argparse.ArgumentParser()
     parser.add_argument('sequence', type=str, help="RNA sequence (one line)")
+    parser.add_argument('--working-path', type=str, default='.', help="Path to store outputs")
     # parser.add_argument('--k', type=np.float, default=1., \
     #                     help="pre exponential factor")
     clargs = parser.parse_args()
+    PATH = clargs.working_path
     with open(clargs.sequence + '.in', 'r') as sequence_file:
         full_sequence = sequence_file.readline().rstrip('\n')
 
-    ax_localpop = fig.add_subplot(2, 1, 1)
+    for e_k in range(1, 16, 1):
+        ax_localpop = fig.add_subplot(4, 4, e_k)
+        k = 1 * 10 ** e_k
+        local_input_path = PATH + '/k' + '%.2g' % k + '/local_population'
+        label = '%.2g' % k
+        local_plot(ax_localpop, local_input_path, label)
 
-    local_input_path = clargs.sequence + '_local_population_k' + 'inf'
-    label = 'inf (relative population)'
-    local_plot(ax_localpop, local_input_path, label)
+    ax_localpop = fig.add_subplot(4, 4, 16)
 
-    ax_localpop = fig.add_subplot(2, 1, 2)
-    # ax_localpop.set_yscale('log')
-
-    local_input_path = clargs.sequence + '_local_population_k' + 'inf'+ '_nupack'
-    label = 'inf (absolute population)'
+    local_input_path = PATH + '/kinf' + '/local_population'
+    label = 'inf'
     local_plot(ax_localpop, local_input_path, label)
 
     # fig.tight_layout()
     plt.show()
 
-    fig.savefig(clargs.sequence + '_local_population_evolution_summary.eps')
-    fig.savefig(clargs.sequence + '_local_population_evolution_summary.png')
+    fig.savefig(PATH + '/local_population_evolution_summary.eps')
+    # fig.savefig(clargs.sequence + '_local_population_evolution_summary.png')
     exit()

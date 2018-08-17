@@ -1,11 +1,8 @@
-import nupack_functions
+from bin import nupack_functions
 from difflib import SequenceMatcher
 import numpy as np
 from collections import defaultdict
 import operator
-from multiprocessing import Pool
-import re
-from scipy.sparse.linalg import expm_multiply
 from scipy.linalg import expm
 import copy
 import time
@@ -18,8 +15,6 @@ R = 1.9858775e-3  # G in kcal/mol
 rate_cutoff = 1e-20  # minimum allowed rate constant
 subopt_gap=0.99
 ##
-
-from numpy.linalg import eig, inv
 
 
 '''

@@ -1,12 +1,8 @@
 from difflib import SequenceMatcher
 import numpy as np
-import Domains
-import nupack_functions
-import matplotlib.pyplot as plt
-from matplotlib import gridspec
-import matplotlib as mpl
+from bin import Domains, nupack_functions
 from multiprocessing import Pool
-import argparse, math, random, gzip, pickle, types
+import argparse
 from collections import defaultdict
 
 # Change following routines for other environments:
@@ -24,12 +20,14 @@ equi_p_unbound = [0.0414220, 0.0612670, 0.0839040, 0.9764600, 0.9300200, 0.08617
 def similar(a, b):
     return SequenceMatcher(None, a, b).ratio()
 
+
 def pfunc_map(dat):
     time = dat[0]
     seq = dat[1]
     print(time)
     pfunc = nupack_functions.nupack_pfunc(seq, 37)
     return (time, pfunc)
+
 
 def boltzmann_map(dat):
     time = dat[0]
@@ -51,7 +49,7 @@ if __name__ == '__main__':
     with open(clargs.sequence + '.in', 'r') as sequence_file:
         full_sequence = sequence_file.readline().rstrip('\n')
 
-    print('k= inf')
+    print('k = inf')
     # data = defaultdict(np.float)
     local_structure_collection_data = defaultdict(lambda: defaultdict(np.float))
     pfuncs = defaultdict(np.float)

@@ -11,7 +11,7 @@ from collections import defaultdict
 L_init = 10  # Initiation unit
 dL = 10  # elongation unit (also means CG unit)
 transcription_time = 0.1
-ddt = 1
+ddt=1
 dt = transcription_time * dL  # Folding time for each elongation step (0.1 s/nt)
 population_size_limit = 100  # maximum type of strands in the pool
 MULTI_PROCESS = 32
@@ -53,7 +53,7 @@ def local_plot(ax_localpop, local_input_path, label):
 if __name__ == '__main__':
 
     plt.style.use('ggplot')
-    fig = plt.figure(figsize=(15, 15))
+    fig = plt.figure(figsize=(12, 10))
     # colors = [plt.cm.jet(lt) for lt in range(0, 8)]
     fig.add_axes()
 
@@ -68,22 +68,22 @@ if __name__ == '__main__':
     with open(clargs.sequence + '.in', 'r') as sequence_file:
         full_sequence = sequence_file.readline().rstrip('\n')
 
-    for e_k in range(1, 16, 1):
-        ax_localpop = fig.add_subplot(4, 4, e_k)
-        k = 1 * 10 ** e_k
-        local_input_path = clargs.sequence + '_local_population_k' + '%.2g' % k
-        label = '%.2g' % k
-        local_plot(ax_localpop, local_input_path, label)
-
-    ax_localpop = fig.add_subplot(4, 4, 16)
+    ax_localpop = fig.add_subplot(2, 1, 1)
 
     local_input_path = clargs.sequence + '_local_population_k' + 'inf'
-    label = 'inf'
+    label = 'inf (relative population)'
+    local_plot(ax_localpop, local_input_path, label)
+
+    ax_localpop = fig.add_subplot(2, 1, 2)
+    # ax_localpop.set_yscale('log')
+
+    local_input_path = clargs.sequence + '_local_population_k' + 'inf' + '_nupack'
+    label = 'inf (absolute population)'
     local_plot(ax_localpop, local_input_path, label)
 
     # fig.tight_layout()
     plt.show()
 
     fig.savefig(clargs.sequence + '_local_population_evolution_summary.eps')
-    # fig.savefig(clargs.sequence + '_local_population_evolution_summary.png')
+    fig.savefig(clargs.sequence + '_local_population_evolution_summary.png')
     exit()

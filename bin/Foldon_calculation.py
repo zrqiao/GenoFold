@@ -1,14 +1,8 @@
-import shlex, subprocess
-from difflib import SequenceMatcher
 import numpy as np
-import Domains
-from collections import defaultdict
-import nupack_functions
-import argparse, math, random, gzip, pickle, types
+from bin import Domains
+import argparse
 from multiprocessing import Pool
-import copy
-import time
-import subprocess, random, os, sys
+import subprocess, random, os
 
 # Modify the following lines according to your NUPACK installation:
 nupack_path = os.environ['HOME'] + '/nupack3.2.2/build/bin'

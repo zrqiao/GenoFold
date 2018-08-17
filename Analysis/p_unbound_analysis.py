@@ -6,8 +6,6 @@ import matplotlib as mpl
 import argparse, math, random, gzip, pickle, types
 from collections import defaultdict
 import os
-import brewer2mpl
-
 # Change following routines for other environments:
 L_init = 10  # Initiation unit
 dL = 10  # elongation unit (also means CG unit)
@@ -25,6 +23,8 @@ def similar(a, b):
 
 def localss_population_processing(input_prefix):
     local_structure_collection_data = defaultdict(lambda: defaultdict(np.float))
+    if not os.path.exists(input_prefix):
+        os.makedirs(input_prefix)
     with open(input_prefix + '.dat', 'r+') as folding_input:
         sss = [(x.split()[0], np.float(x.split()[1]))
                for x in folding_input.readlines()]
@@ -36,7 +36,7 @@ def localss_population_processing(input_prefix):
                 if len(ss[0]) >= SD_end:
                     SD_ss = ss[0][SD_start:SD_end]
                     local_structure_collection_data[SD_ss][time] += ss[1]
-    with open(input_prefix + '_local_population_k' + '%.2g' % k + '.dat', 'w+') as local_output:
+    with open(input_prefix + '/local_population' + '.dat', 'w+') as local_output:
         for local_ss in local_structure_collection_data.keys():
             local_output.write(local_ss + '\n')
             local_output.write(' '.join(map(str, local_structure_collection_data[local_ss].keys())) + '\n')
@@ -45,9 +45,11 @@ def localss_population_processing(input_prefix):
 
 def data_ploting(ax_punbound, input_prefix, label, start_index, end_index):
     data_punbound = defaultdict(np.float)
-    if not os.path.exists(input_prefix + '_p_unbound'):
-        os.makedirs(input_prefix + '_p_unbound')
-    f = open(input_prefix + f'_p_unbound/base{start_index}_{end_index}.dat', 'w')
+    if not os.path.exists(input_prefix):
+        os.makedirs(input_prefix)
+    if not os.path.exists(input_prefix + '/p_unbound'):
+        os.makedirs(input_prefix + '/p_unbound')
+    f = open(input_prefix + f'/p_unbound/base{start_index}_{end_index}.dat', 'w')
     with open(input_prefix + '.dat', 'r+') as folding_input:
         sss = [(x.split()[0], np.float(x.split()[1]))
                for x in folding_input.readlines()]
@@ -69,9 +71,11 @@ def data_ploting(ax_punbound, input_prefix, label, start_index, end_index):
 
 def data_ploting_equ(ax_punbound, input_prefix, label, start_index, end_index):
     data_punbound = defaultdict(np.float)
-    if not os.path.exists(input_prefix + '_p_unbound'):
-        os.makedirs(input_prefix + '_p_unbound')
-    f = open(input_prefix + f'_p_unbound/base{start_index}_{end_index}.dat', 'w')
+    if not os.path.exists(input_prefix):
+        os.makedirs(input_prefix)
+    if not os.path.exists(input_prefix + '/p_unbound'):
+        os.makedirs(input_prefix + '/p_unbound')
+    f = open(input_prefix + f'/p_unbound/base{start_index}_{end_index}.dat', 'w')
     with open('folA_WT/summary_pairs.dat', 'r+') as folding_input:  # NOTE: Format here need to be unified!
         pairs_data = [list(map(np.float, x.split())) for x in folding_input.readlines()]
         for dat in pairs_data:
@@ -103,12 +107,14 @@ if __name__ == '__main__':
     mpl.rcParams.update(params)
     parser = argparse.ArgumentParser()
     parser.add_argument('sequence', type=str, help="RNA sequence (one line)")
+    parser.add_argument('--working-path', type=str, default='.', help="Path to store outputs")
     # parser.add_argument('--k', type=np.float, default=1., \
     #                     help="pre exponential factor")
     clargs = parser.parse_args()
     with open(clargs.sequence + '.in', 'r') as sequence_file:
         full_sequence = sequence_file.readline().rstrip('\n')
 
+    PATH = clargs.working_path
     # Start IO
     fig = plt.figure()
     fig.add_axes()
@@ -117,8 +123,8 @@ if __name__ == '__main__':
     ax_punbound = fig.add_subplot(111)
     ax_punbound.set_color_cycle([cm(1. * i / NUM_COLORS) for i in range(NUM_COLORS)])
 
-    # ax_localpop.set_title(f'Average p_unbound for base[-9](G) {clargs.sequence}')
-    ax_punbound.set_title(f'{clargs.sequence} '+r'Average SD $p_{unbound}$')
+    # ax_localpop.set_title(f'Average p_unbound for base[-9](G) {PATH}')
+    ax_punbound.set_title(f'{PATH}: '+r'Average SD $p_{unbound}$')
     ax_punbound.set_xlabel('Transcription time')
     ax_punbound.set_ylabel(r'$p_{unbound}$')
     ax_punbound.grid(axis='y', color="0.9", linestyle='-', linewidth=1)
@@ -130,7 +136,7 @@ if __name__ == '__main__':
     for e_k in range(1, 15, 3):
         k = 1*10**e_k
         print('k= %.2g'%k)
-        prefix = clargs.sequence + '_k' + '%.2g' % k
+        prefix = PATH + '/k' + '%.2g' % k
         label = r'$k/k_T$ = ' + '%.2g' % k
         # localss_population_processing(prefix)
         data_ploting(ax_punbound, prefix, label, SD_start, SD_end)
@@ -138,19 +144,19 @@ if __name__ == '__main__':
     print('k= inf')
     data = defaultdict(np.float)
     local_structure_collection_data = defaultdict(lambda: defaultdict(np.float))
-    prefix = clargs.sequence + '_k' + 'inf'
+    prefix = PATH + '/k' + 'inf'
     label = r'$k/k_T$ = ' + 'inf'
     # localss_population_processing(prefix)
     data_ploting(ax_punbound, prefix, label, SD_start, SD_end)
 
-    prefix = clargs.sequence + '_equilibrium'
+    prefix = PATH + '/equilibrium'  # Need to be copied here
     label = 'Equilibrium'
-    data_ploting_equ(ax_punbound, prefix, label, SD_start, SD_end)
+    data_ploting_equ(ax_punbound, prefix, label, SD_start, SD_end)  # Another format
     ax_punbound.legend(loc='best')
     # fig.tight_layout()
     plt.show()
 
-    fig.savefig(clargs.sequence + f'_p_unbound_SD_k_tuning.eps')
+    fig.savefig(PATH + f'/p_unbound_SD_k_tuning.eps')
 
     for base_position in range(0, 7):  # note: Relative to SD_start
         base_gene_position = base_position-14
@@ -159,7 +165,7 @@ if __name__ == '__main__':
         ax_punbound = fig.add_subplot(111)
         ax_punbound.set_color_cycle([cm(1. * i / NUM_COLORS) for i in range(NUM_COLORS)])
         # ax_localpop.set_title(f'Average p_unbound for base[-9](G) {clargs.sequence}')
-        ax_punbound.set_title(f'{clargs.sequence} base [{base_gene_position}] '+r'$p_{unbound}$:')
+        ax_punbound.set_title(f'{PATH}: base [{base_gene_position}] '+r'$p_{unbound}$:')
         # ax_punbound.set_title(f'{clargs.sequence} base [{base_position}] '+r'$p_{unbound}$:')
         ax_punbound.set_xlabel('Transcription time')
         ax_punbound.set_ylabel(r'$p_{unbound}$')
@@ -171,18 +177,18 @@ if __name__ == '__main__':
         for e_k in range(1, 15, 3):
             k = 1 * 10 ** e_k
             print('k= %.2g' % k)
-            prefix = clargs.sequence + '_k' + '%.2g' % k
+            prefix = PATH + '/k' + '%.2g' % k
             label = r'$k/k_T$ = ' + '%.2g' % k
             data_ploting(ax_punbound, prefix, label, SD_start+base_position, SD_start+base_position+1)
 
         print('k= inf')
         data = defaultdict(np.float)
         local_structure_collection_data = defaultdict(lambda: defaultdict(np.float))
-        prefix = clargs.sequence + '_k' + 'inf'
+        prefix = PATH + '/k' + 'inf'
         label = r'$k/k_T$ = ' + 'inf'
         data_ploting(ax_punbound, prefix, label, SD_start+base_position, SD_start+base_position+1)
 
-        prefix = clargs.sequence + '_equilibrium'
+        prefix = PATH + '/equilibrium'
         label = 'Equilibrium'
         data_ploting_equ(ax_punbound, prefix, label, SD_start+base_position, SD_start+base_position+1)
 
@@ -190,5 +196,5 @@ if __name__ == '__main__':
         # fig.tight_layout()
         plt.show()
 
-        fig.savefig(clargs.sequence + f'_p_unbound_base[{base_gene_position}]_k_tuning.eps')
+        fig.savefig(PATH + f'/p_unbound_base[{base_gene_position}]_k_tuning.eps')
 exit()

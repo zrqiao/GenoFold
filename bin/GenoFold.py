@@ -1,13 +1,8 @@
-import shlex, subprocess
-from difflib import SequenceMatcher
 import numpy as np
-import Domains
-from collections import defaultdict
-import nupack_functions
-import argparse, math, random, gzip, pickle, types
-from multiprocessing import Pool
+from bin import Domains
+import os
+import argparse, gzip, pickle
 import copy
-import time
 
 # Change following routines for other environments:
 dL = 1  # elongation unit (also means CG unit)
@@ -36,6 +31,9 @@ if __name__ == '__main__':
         prefix = clargs.working_path + '/k' + '%.2g' % clargs.k
     else:
         prefix = clargs.working_path + '/kinf'
+
+    if not os.path.exists(clargs.working_path):
+        os.makedirs(clargs.working_path)
 
     dL = clargs.CG_length
 
@@ -71,7 +69,7 @@ if __name__ == '__main__':
     init_pfunc = np.sum([Domains.boltzmann_factor(fd.get_G()) for fd in init_foldons])
     for init_foldon in init_foldons:
         active_species_pool.add_species(
-            init_foldon, population=Domains.boltzmann_factor(init_foldon.get_G()))/init_pfunc
+            init_foldon, population=Domains.boltzmann_factor(init_foldon.get_G())) / init_pfunc
     sequence_length = len(full_sequence)
     current_length = L_init
     active_species_pool.timestamp += dt

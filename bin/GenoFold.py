@@ -69,7 +69,7 @@ if __name__ == '__main__':
     init_pfunc = np.sum([Domains.boltzmann_factor(fd.get_G()) for fd in init_foldons])
     for init_foldon in init_foldons:
         active_species_pool.add_species(
-            init_foldon, population=Domains.boltzmann_factor(init_foldon.get_G())) / init_pfunc
+            init_foldon, population=Domains.boltzmann_factor(init_foldon.get_G()) / init_pfunc)
     sequence_length = len(full_sequence)
     current_length = L_init
     active_species_pool.timestamp += dt

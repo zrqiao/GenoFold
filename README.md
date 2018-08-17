@@ -6,11 +6,10 @@ A genetic algorithm based approach to simulate kinetics of
 co-transcriptional folding.
 
 
-Progress
+Framework
 ========
 
-Framework
----------
+
 
 Various algorithms or programs have been developed to predict RNA
 folding pathway ultilizing force-field based simulations and multiple

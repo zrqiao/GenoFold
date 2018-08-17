@@ -178,11 +178,13 @@ if __name__ == '__main__':
         # active_species_pool.clear()
         log.flush()
 
-        log.write('Population evolution... \n')
-        log.write('Population size before selection: ' + str(active_species_pool.size) + '\n')
-        log.flush()
+        log.write('Population evolution...')
         species_list, intermediate_population_arrays, time_array = \
             active_species_pool.evolution(all_pathways, time_limit, ddt, stationary=clargs.stationary)
+        log.write('finished \n')
+        log.flush()
+        log.write('Population size before selection: ' + str(active_species_pool.size) + '\n')
+        log.flush()
         active_species_pool.selection(population_size_limit)
 
         log.write('Time: %d \n' % active_species_pool.timestamp)

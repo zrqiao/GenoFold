@@ -21,6 +21,7 @@
 \usepackage{graphicx}
 \usepackage{algorithm}% http://ctan.org/pkg/algorithm
 \usepackage{algpseudocode}% http://ctan.org/pkg/algorithmicx
+\usepackage[numbers,sort&compress]{natbib}
 
 \geometry{top=1in, bottom=1in, left=1in, right=1in}
 %\linespread{1.5}
@@ -48,7 +49,7 @@
 \subsection{Framework}
 Various algorithms or programs have been developed to predict RNA folding pathway ultilizing force-field based simulations\cite{RaviprasadAduri2007} and multiple sampling methods based on Monte Carlo trajectories\cite{Gultyaev1995}\cite{Clote} or coarse graining of energy landscape built on Markov state model\cite{Wolfinger}\cite{Sun2018}. Those present methods have succeeded in revealing multiscale dynamic events during RNA folding, however are either designed for only predicting
 annealing dynamics or limited to RNA segments with length up to hundred bases. To quantitatively predict folding dynamics coupled with transcription,
-we developed a genetic algorithm and chemical Master equation based approach, which is capable of capturing kilobase level kinetics.
+we developed GenoFold, a genetic algorithm and chemical Master equation based approach, which is capable of capturing kilobase level kinetics.
  Our method is built on two following assumptions:
 \paragraph{1} All populated RNA secondary structures (SS) are linkage of locally optimal or sub-optimal structures at various folding sites;
 \paragraph{2} Global structural rearrangement of a partial RNA segment is permitted only if it's folding to the optimal SS on that segment.
@@ -101,7 +102,7 @@ For the sake of computational efficiency, we introduce a cutoff $N $ as the size
 strands; species with top $N $ fitness is reserved. In the current edition, we simply used population as the fitness function. Population of remaining strands within
 the active pool is renormalized after selection.
 
-Pseudocodes of the whole simulation procedure are as follows (Algorithm \ref{algorithm:1}):
+Pseudocodes of GenoFold simulation procedure are as follows (Algorithm \ref{algorithm:1}):
 
 \begin{algorithm}
   \begin{algorithmic}[1]
@@ -143,7 +144,7 @@ Pseudocodes of the whole simulation procedure are as follows (Algorithm \ref{alg
 
 The only remaining free parameter to be determined is $k_0/k_T$, the ratio of pre-exponential factor in Arrhenius rate formulation for folding and trancription rate ($nt\cdot s^{-1}$). I tuned $k_0/k_T$ from $10^{1}$ to $10^{15}$ and obtained the data for $k_0/k_T=\infty$ by calculating stationary distribution ($\frac{1}{Q}\exp(-G_i)$) after every elongation step for strand i in active pool.
  
-\paragraph{Population analysis} For folA-WT four predominant local folding motifs within SD sequence are identified. Figure \ref{fig:local_foldings} shows exemplary secondary structures containing these motifs; figure \ref{fig:populations} shows evolution of these structure motifs during co-transcriptional folding with different $k_0/k_T$. Identical motifs are marked by the same color as in figure \ref{fig:local_foldings}. Surprisingly we noticed that when $k_0/k_T=\infty$, exchange between dominant motifs was very frequent at early stage of transcription, indicating the sensitivity of local structures on long-range contacts. We also noticed that motif predominance after transcription strongly depended on folding rate, reiterating
+\paragraph{Population analysis} For folA-WT four predominant local folding motifs within SD sequence are identified. Figure \ref{fig:local_foldings} shows exemplary secondary structures containing these motifs; figure \ref{fig:populations} shows evolution of these structure motifs during co-transcriptional folding with different $k_0/k_T$. Identical motifs are marked by the same color as in figure \ref{fig:local_foldings}. Surprisingly we noticed that when $k_0/k_T=\infty$, exchange between energetially favorable motifs was very frequent at early stage of transcription, indicating the sensitivity of local structures on long-range contacts. We also noticed that motif predominance after transcription strongly depended on folding rate, reiterating the importance of time scale in the folding problem.
 
 \begin{figure*}
     \centering
@@ -190,80 +191,80 @@ The only remaining free parameter to be determined is $k_0/k_T$, the ratio of pr
 \label{fig:populations}
 \end{figure*}
 
-\paragraph{$p_{unbound}$ analysis} We calculated $p_{unbound}$ with respect to transcription time and $k_0/k_T$ (Figure \ref{fig:RNA_p_unbound_SD_k_tuning}-\ref{fig:RNA_p_unbound_base[-14]_k_tuning}). Deviation of asymptotic behavior from equilibrium value (calculated by nupack.ppairs) is possiblly due to the limited set of foldons (only used mfe to obtain current results).
+\paragraph{$p_{unbound}$ analysis} We calculated $p_{unbound}$ with respect to transcription time and $k_0/k_T$ (Figure \ref{fig:RNA_p_unbound_SD_k_tuning}-\ref{fig:RNA_p_unbound_base[-14]_k_tuning}). As a data test we used nupack.ppairs to calculate equilibrium $p_{unbound }$ for all truncated sequences. Deviation of asymptotic behavior of model from equilibrium value is possiblly due to the limited set of foldons (only used mfe to obtain current results).
 
 \begin{figure}
 	\centering
 	\includegraphics[width=\linewidth]{p_unbound/RNA_p_unbound_SD_k_tuning}
-	\caption{}
+	\caption{Average $p_{unbound}$ of SD sequence during transcription.}
 	\label{fig:RNA_p_unbound_SD_k_tuning}
 \end{figure}
 \begin{figure}
 \centering
 \includegraphics[width=\linewidth]{p_unbound/RNA_p_unbound_base[-8]_k_tuning}
-\caption{}
+\caption{$p_{unbound}$ of base -8 during transcription.}
 \label{fig:RNA_p_unbound_base[-8]_k_tuning}
 \end{figure}
 \begin{figure}
 \centering
 \includegraphics[width=\linewidth]{p_unbound/RNA_p_unbound_base[-9]_k_tuning}
-\caption{}
+\caption{Same as above, base -9.}
 \label{fig:RNA_p_unbound_base[-9]_k_tuning}
 \end{figure}
 \begin{figure}
 \centering
 \includegraphics[width=\linewidth]{p_unbound/RNA_p_unbound_base[-10]_k_tuning}
-\caption{}
+\caption{Same as above, base -10.}
 \label{fig:RNA_p_unbound_base[-10]_k_tuning}
 \end{figure}
 \begin{figure}
 \centering
 \includegraphics[width=\linewidth]{p_unbound/RNA_p_unbound_base[-11]_k_tuning}
-\caption{}
+\caption{Same as above, base -11.}
 \label{fig:RNA_p_unbound_base[-11]_k_tuning}
 \end{figure}
 \begin{figure}
 \centering
 \includegraphics[width=\linewidth]{p_unbound/RNA_p_unbound_base[-12]_k_tuning}
-\caption{}
+\caption{Same as above, base -12.}
 \label{fig:RNA_p_unbound_base[-12]_k_tuning}
 \end{figure}
 \begin{figure}
 \centering
 \includegraphics[width=\linewidth]{p_unbound/RNA_p_unbound_base[-13]_k_tuning}
-\caption{}
+\caption{Same as above, base -13.}
 \label{fig:RNA_p_unbound_base[-13]_k_tuning}
 \end{figure}
 \begin{figure}
 \centering
 \includegraphics[width=\linewidth]{p_unbound/RNA_p_unbound_base[-14]_k_tuning}
-\caption{}
+\caption{Same as above, base -14.}
 \label{fig:RNA_p_unbound_base[-14]_k_tuning}
 \end{figure}
 
 \subsection{Model optimization}
+
+We observed that our model tends to overesitimate the flucuation of average $p_{unbound}$ when $k=\infty$, and some kinetic patterns were lost (for bases -11, -12 and -14). Specifically we found that for base -8 and base -9, our model gave identical results while for equilibrium nupack.ppairs calculation there was a overall upshift of $p_{unbound}$.
+
+Then we examined sub-optimal structures using nupack.subopt for sequence truncated at 150 nt, and found two tentative kinetically important structures between which free energy difference if 0.7 kcal (Figure \ref{fig:excp}). Coexistence of those sub-optimal structures instead of only the minimum free energy structure will possibly result in similar population dynamics as above but different $p_{unbound}$ at single base resolution. We also noticed that for mininum free energy motifs, base -11, -12 and -14 shared the same pairing patterns, meaning that $p_{unbound}$ for such bases has no response to motif population dynamics.
+
+From above results, we suggest that optimizing foldon collections by incorporate sub-optimal structures with a energy gap of 1cal/mol could improve the predictibility of our model.
+
 \begin{figure}
 \centering
 \includegraphics[width=\linewidth]{folding_example_grey_compare.png}
 \caption{Tentative kinetically important sub-optimum structures (dG = 0.7 kcal/mol).}
-\label{fig:RNA_p_unbound_base[-14]_k_tuning}
+\label{fig:excp}
 \end{figure}
 
-
-
-%\paragraph{a.} Using a genetic-algorithm based method and NUPACK to predict populated RNA configurations during cotranscriptional folding (in progress);
-%\paragraph{b.} Using master equation method to simulate evolution of folding configurations and SD sequence accessibility.
-
-%In order to examine when the one-dimensional coordinate projection could be recognized as effective reaction coordinate,
-%we then examine the probability distribution of committors for transition path trajectories $p(q|TP)$, for which a single peak of probability $p(q|TP)$ have been ultilized as a indicator for 'good' reaction coordinates.
-% Firstly, We found that for harmonic toy model, the shape of $p(q|TP)$ is very sensitive to the definition of source/sink region. For illustration, $p(q|TP)$ for two different selection
-%  of source/sink regions was compared: in the first case, only two free energy minimum was indentified as source or sink\textbf{(S1)}; in the second case, only the barrier top was
-%  defined as the transition path, while other two region of the free energy landscape was calssified as source/sink\textbf{(S2)}.
+\section{Future plan}
+\paragraph{1} Optimize GenoFold by including sub-optimal foldons for structure generation (in progress);
+\paragraph{2} Bioinformatic analysis of translation initiation rate along synonymous mutants based on prediction data.
 
 %\cite{Jacobs2018,Chaudhury2010,Vanden-Eijnden2010,Metzner,Krivov}
 
 \small
-\bibliographystyle{plain}
+\bibliographystyle{unsrt}
 \bibliography{ref}
 
 \end{document}

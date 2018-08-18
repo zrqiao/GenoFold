@@ -1,38 +1,27 @@
 \begin{thebibliography}{1}
 
-\bibitem{Bayegan}
-A~H Bayegan and P~Clote.
-\newblock {Minimum length RNA folding trajectories}.
-\newblock Technical report.
-
-\bibitem{Clote}
-Peter Clote and Amir~H Bayegan.
-\newblock {RNA folding kinetics using Monte Carlo and Gillespie algorithms *}.
-\newblock Technical report.
+\bibitem{RaviprasadAduri2007}
+Raviprasad Aduri, Brian~T. Psciuk, Pirro Saro, Hariprakash Taniga, H.~Bernhard
+  Schlegel, and John SantaLucia.
+\newblock {AMBER force field parameters for the naturally occurring modified
+  nucleosides in RNA}.
+\newblock {\em Journal of Chemical Theory and Computation}, 3(4):1464--1475,
+  2007.
 
 \bibitem{Gultyaev1995}
-Alexander~P Gultyaev, F~H~D {Van Batenburg}, and Cornelis W~A Pleij.
-\newblock {The Computer Simulation of RNA Folding Pathways Using a Genetic
-  Algorithm}.
-\newblock Technical report, 1995.
+Alexander~P. Gultyaev, F.~H.D. {Van Batenburg}, and Cornelis~W.A. Pleij.
+\newblock {The computer simulation of RNA folding pathways using a genetic
+  algorithm}.
+\newblock Technical Report~1, 1995.
 
-\bibitem{RaviprasadAduri2007}
-{Raviprasad Aduri}, {Brian T. Psciuk}, {Pirro Saro}, {Hariprakash Taniga}, ,
-  {H. Bernhard Schlegel}, and Jr.* {John SantaLucia}.
-\newblock {AMBER Force Field Parameters for the Naturally Occurring Modified
-  Nucleosides in RNA}.
-\newblock 2007.
+\bibitem{Clote}
+Peter Clote and Amir~H. Bayegan.
+\newblock {RNA folding kinetics using Monte Carlo and Gillespie algorithms?}
+\newblock Technical report, 2017.
 
 \bibitem{Sun2018}
-Ting-ting Sun, Chenhan Zhao, and Shi-Jie Chen.
-\newblock {Predicting Cotranscriptional Folding Kinetics For Riboswitch}.
-\newblock 2018.
-
-\bibitem{Wolfinger}
-Michael~T Wolfinger, W~Andreas Svrcek-Seiler, Christoph Flamm, Ivo~L Hofacker,
-  and Peter~F Stadler.
-\newblock {Exact Folding Dynamics of RNA Secondary Structures Dynamics of RNA
-  Folding 2}.
-\newblock Technical report.
+Tingting Sun, Chenhan Zhao, and Shi~Jie Chen.
+\newblock {Predicting Cotranscriptional Folding Kinetics for Riboswitch}.
+\newblock {\em Journal of Physical Chemistry B}, 2018.
 
 \end{thebibliography}

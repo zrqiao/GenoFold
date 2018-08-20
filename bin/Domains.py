@@ -66,7 +66,7 @@ def Propagate_trunc2(M, p, dt, ddt=1):
     # E will always be real
     Uinv = np.linalg.inv(U)
     N = int(dt/ddt)
-    if N==1:
+    if len(p) == 1:
         intermediate_populations = [p for i in range(N)]
         return intermediate_populations
     else:

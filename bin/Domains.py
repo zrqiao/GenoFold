@@ -66,14 +66,18 @@ def Propagate_trunc2(M, p, dt, ddt=1):
     # E will always be real
     Uinv = np.linalg.inv(U)
     N = int(dt/ddt)
-    R = np.zeros((len(p), N))
-    R[0] = 1
-    R[1] = np.exp(e[1]*times)
-    # print(np.exp(time*np.diag(e)))
-    E = [np.real(np.dot(np.dot(U, np.diag(R[i])), Uinv)) for i in range(N)]
-    # print(E)
-    intermediate_populations = [np.dot(E[i], p) for i in range(N)]
-    return intermediate_populations
+    if N==1:
+        intermediate_populations = [p for i in range(N)]
+        return intermediate_populations
+    else:
+        R = np.zeros((len(p), N))
+        R[0] = 1
+        R[1] = np.exp(e[1]*times)
+        # print(np.exp(time*np.diag(e)))
+        E = [np.real(np.dot(np.dot(U, np.diag(R[i])), Uinv)) for i in range(N)]
+        # print(E)
+        intermediate_populations = [np.dot(E[i], p) for i in range(N)]
+        return intermediate_populations
 
 
 '''
@@ -540,6 +544,7 @@ class SpeciesPool(object):
             '''
             # Master Equation
             intermediate_population_arrays = Propagate_trunc2(rate_matrix, population_array, dt, ddt=ddt)
+            # TODO: This is only for perturbation!
         population_array = intermediate_population_arrays[-1]
         # Remapping
         for i in range(self.size):

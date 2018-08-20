@@ -30,7 +30,7 @@ def local_plot(ax_localpop, local_input_path, label):
         ax_localpop.set_title(f'SD Local folding population $k/k_T$ = {label}')
         ax_localpop.set_xlabel('Transcription time')
         ax_localpop.set_ylabel('Population fraction')
-        ax_localpop.set_xlim(0, 515)
+        ax_localpop.set_xlim(28, 515)
         print(f'SD Local folding population $k/k_T$ = {label}')
         data_raw = local_input.readlines()
         ss_num = int(len(data_raw) / 3)
@@ -47,19 +47,22 @@ def local_plot(ax_localpop, local_input_path, label):
 
             ax_localpop.bar(time_array, populations, bottom=prev_pop, label=ss, width=ddt)
             prev_pop += populations
-    ax_localpop.legend(loc='best')
+    # ax_localpop.legend(loc='best')
 
 
 if __name__ == '__main__':
 
-    plt.style.use('ggplot')
+    # plt.style.use('ggplot')
     fig = plt.figure(figsize=(15, 15))
     # colors = [plt.cm.jet(lt) for lt in range(0, 8)]
     fig.add_axes()
-
     # mpl.rcParams['axes.color_cycle'] = colors
     mpl.rcParams['axes.titlesize'] = 10
     mpl.rcParams['axes.titleweight'] = 10
+
+    NUM_COLORS = 25
+    cm = plt.get_cmap('rainbow_r')
+
     parser = argparse.ArgumentParser()
     parser.add_argument('sequence', type=str, help="RNA sequence (one line)")
     parser.add_argument('--working-path', type=str, default='.', help="Path to store outputs")
@@ -70,14 +73,16 @@ if __name__ == '__main__':
     with open(clargs.sequence + '.in', 'r') as sequence_file:
         full_sequence = sequence_file.readline().rstrip('\n')
 
-    for e_k in range(1, 16, 1):
-        ax_localpop = fig.add_subplot(4, 4, e_k)
+    for e_k in range(1, 15, 3):
+        ax_localpop = fig.add_subplot(3, 2, int(e_k/3)+1)
+        ax_localpop.set_color_cycle([cm(1. * i / NUM_COLORS) for i in range(NUM_COLORS)])
         k = 1 * 10 ** e_k
         local_input_path = PATH + '/k' + '%.2g' % k + '/local_population'
         label = '%.2g' % k
         local_plot(ax_localpop, local_input_path, label)
 
-    ax_localpop = fig.add_subplot(4, 4, 16)
+    ax_localpop = fig.add_subplot(3, 2, 6)
+    ax_localpop.set_color_cycle([cm(1. * i / NUM_COLORS) for i in range(NUM_COLORS)])
 
     local_input_path = PATH + '/kinf' + '/local_population'
     label = 'inf'
@@ -87,5 +92,4 @@ if __name__ == '__main__':
     plt.show()
 
     fig.savefig(PATH + '/local_population_evolution_summary.eps')
-    # fig.savefig(clargs.sequence + '_local_population_evolution_summary.png')
     exit()

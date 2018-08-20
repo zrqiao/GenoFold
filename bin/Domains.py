@@ -4,6 +4,7 @@ import numpy as np
 from collections import defaultdict
 import operator
 from scipy.linalg import expm
+import numpy.linalg as linalg
 import copy
 import time
 from sklearn import preprocessing
@@ -17,22 +18,65 @@ subopt_gap=0.99
 ##
 
 
-'''
+def eigen(M):
+    eigenValues, eigenVectors = linalg.eig(M)
+    idx = eigenValues.argsort()[::-1]
+    eigenValues = eigenValues[idx]
+    eigenVectors = eigenVectors[:, idx]
+    return eigenValues, eigenVectors
+
+
 def Propagate(M, p, time):
 
-    e, U = eig(M)
+    e, U = eigen(M)
     # print(e)
     # the eigenvalues are distinct -- possibly complex, but
     # E will always be real
-    Uinv = inv(U)
+    Uinv = np.linalg.inv(U)
     # print(np.exp(time*np.diag(e)))
     E = np.real(np.dot(np.dot(U, np.diag(np.exp(time*e))), Uinv))
     # print(E)
     p1 = np.dot(p, E)
     return p1
+
+
+def Propagate_stationary(M, p, dt, ddt):
+
+    e, U = eigen(M.transpose())
+    times = np.arange(0, dt, ddt) + ddt
+    # print(e)
+    # the eigenvalues are distinct -- possibly complex, but
+    # E will always be real
+    Uinv = np.linalg.inv(U)
+    R = np.zeros(len(p))
+    R[0] = 1
+    # print(np.exp(time*np.diag(e)))
+    E = np.real(np.dot(np.dot(U, np.diag(R)), Uinv))
+    intermediate_populations = [np.dot(E, p) for t in times]
+    # print(E)
+    return intermediate_populations
+
+
+def Propagate_trunc2(M, p, dt, ddt):
+
+    e, U = eigen(M.transpose())
+    times = np.arange(0, dt, ddt) + ddt
+    # print(e)
+    # the eigenvalues are distinct -- possibly complex, but
+    # E will always be real
+    Uinv = np.linalg.inv(U)
+    N = int(dt/ddt)
+    R = np.zeros((len(p), N))
+    R[0] = 1
+    R[1] = np.exp(e[1]*times)
+    # print(np.exp(time*np.diag(e)))
+    E = [np.real(np.dot(np.dot(U, np.diag(R[i])), Uinv)) for i in range(N)]
+    # print(E)
+    intermediate_populations = [np.dot(E[i], p) for i in range(N)]
+    return intermediate_populations
+
+
 '''
-
-
 def Propagate(M, p, dt, ddt=1):
     time_1=time.time()
     # time_series = np.arange(0, dt, ddt) + dt
@@ -51,6 +95,7 @@ def Propagate(M, p, dt, ddt=1):
     # print(time.time()-time_1)
     return intermediate_populations
     # return np.dot(p, expm(time*M))
+'''
 
 
 def similar(a, b):
@@ -141,7 +186,8 @@ class Domain(object):
         self.G = None
         self.elements = set()
         self.is_foldon = False
-        self.IFR = np.array([])  # Irreducible foldons representation NOTE: IFR is automatically generated when initiate foldons
+        self.IFR = np.array([])  # Irreducible foldons representation
+        #  NOTE: IFR is automatically generated when initiate foldons
         self.collection = collection  # NOTE: collection is a domains_collection
         self.loop_state = None
 
@@ -472,23 +518,26 @@ class SpeciesPool(object):
         time_array = np.arange(0, dt, ddt) + self.timestamp + ddt
 
         if stationary:
+            '''
             intermediate_population_arrays = \
                 preprocessing.normalize([[rate(species[0].get_G(), 1) for species in species_list]
                                         for t in time_array], norm='l1', axis=1)
-        #    return species_list, intermediate_population_arrays, time_array
+            '''
+
         else:
             for i in range(self.size):
                 population_array[i] = species_list[i][1]
                 for j in range(self.size):
                     rate_matrix[i][j] = pathways.get_rate(species_list[i][0], species_list[j][0])
                 rate_matrix[i][i] = -np.sum(rate_matrix[i])
-
+            '''
             k_fastest = np.max(rate_matrix)
             for i in range(self.size):  # Make it a REAL sparse matrix
                 for j in range(self.size):
                     if rate_matrix[i][j] < k_fastest * rate_cutoff:
                         rate_matrix[i][j] = 0
                 rate_matrix[i][i] = -np.sum(rate_matrix[i])
+            '''
             # Master Equation
             intermediate_population_arrays = Propagate(rate_matrix, population_array, dt, ddt=ddt)
         population_array = intermediate_population_arrays[-1]

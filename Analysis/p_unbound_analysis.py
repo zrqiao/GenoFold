@@ -118,8 +118,8 @@ if __name__ == '__main__':
     # Start IO
     fig = plt.figure()
     fig.add_axes()
-    NUM_COLORS = 6
-    cm = plt.get_cmap('Set1')
+    NUM_COLORS = 7
+    cm = plt.get_cmap('rainbow')
     ax_punbound = fig.add_subplot(111)
     ax_punbound.set_color_cycle([cm(1. * i / NUM_COLORS) for i in range(NUM_COLORS)])
 
@@ -130,15 +130,14 @@ if __name__ == '__main__':
     ax_punbound.grid(axis='y', color="0.9", linestyle='-', linewidth=1)
     # ax_localpop.set_yscale('log')
     # ax_localpop.set_xscale('log')
-    # ax_localpop.set_ylim(1e-5, 1.5)
-    # ax_localpop.set_ylim(0.0, 1.1)
+    ax_punbound.set_ylim(0, 1.05)
 
-    for e_k in range(1, 15, 3):
+    for e_k in range(1, 14, 3):
         k = 1*10**e_k
         print('k= %.2g'%k)
         prefix = PATH + '/k' + '%.2g' % k
         label = r'$k/k_T$ = ' + '%.2g' % k
-        # localss_population_processing(prefix)
+        localss_population_processing(prefix)
         data_ploting(ax_punbound, prefix, label, SD_start, SD_end)
 
     print('k= inf')
@@ -146,7 +145,7 @@ if __name__ == '__main__':
     local_structure_collection_data = defaultdict(lambda: defaultdict(np.float))
     prefix = PATH + '/k' + 'inf'
     label = r'$k/k_T$ = ' + 'inf'
-    # localss_population_processing(prefix)
+    localss_population_processing(prefix)
     data_ploting(ax_punbound, prefix, label, SD_start, SD_end)
 
     prefix = PATH + '/equilibrium'  # Need to be copied here
@@ -171,10 +170,10 @@ if __name__ == '__main__':
         ax_punbound.set_ylabel(r'$p_{unbound}$')
         # ax_punbound.set_yscale('log')
         # ax_localpop.set_xscale('log')
-        # ax_punbound.set_ylim(1e-4, 1.1)
+        ax_punbound.set_ylim(0, 1.05)
         ax_punbound.grid(axis='y', color="0.9", linestyle='-', linewidth=1)
 
-        for e_k in range(1, 15, 3):
+        for e_k in range(1, 14, 3):
             k = 1 * 10 ** e_k
             print('k= %.2g' % k)
             prefix = PATH + '/k' + '%.2g' % k
@@ -196,5 +195,5 @@ if __name__ == '__main__':
         # fig.tight_layout()
         plt.show()
 
-        fig.savefig(PATH + f'/p_unbound_base[{base_gene_position}]_k_tuning.eps')
+        fig.savefig(PATH + f'/p_unbound_base[{base_gene_position}]_k_tuning_linear.eps')
 exit()

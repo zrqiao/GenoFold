@@ -13,6 +13,9 @@ transcription_time = 0.1
 dt = transcription_time * dL  # Folding time for each elongation step (0.1 s/nt)
 population_size_limit = 100  # maximum type of strands in the pool
 MULTI_PROCESS = 32
+km_start = 1
+km_end = 5
+km_interval = 3
 SD_start, SD_end = 21, 28
 equi_p_unbound = [0.0414220, 0.0612670, 0.0839040, 0.9764600, 0.9300200, 0.0861740, 0.2976000]
 
@@ -132,7 +135,7 @@ if __name__ == '__main__':
     # ax_localpop.set_xscale('log')
     ax_punbound.set_ylim(0, 1.05)
 
-    for e_k in range(1, 14, 3):
+    for e_k in range(km_start, km_end, km_interval):
         k = 1*10**e_k
         print('k= %.2g'%k)
         prefix = PATH + '/k' + '%.2g' % k
@@ -173,7 +176,7 @@ if __name__ == '__main__':
         ax_punbound.set_ylim(0, 1.05)
         ax_punbound.grid(axis='y', color="0.9", linestyle='-', linewidth=1)
 
-        for e_k in range(1, 14, 3):
+        for e_k in range(km_start, km_end, km_interval):
             k = 1 * 10 ** e_k
             print('k= %.2g' % k)
             prefix = PATH + '/k' + '%.2g' % k

@@ -74,7 +74,7 @@ def Propagate_trunc2(M, p, dt, ddt=1):
         R[0] = 1
         R[1] = np.exp(e[1]*times)
         # print(np.exp(time*np.diag(e)))
-        E = [np.real(np.dot(np.dot(U, np.diag(R[i])), Uinv)) for i in range(N)]
+        E = [np.real(np.dot(np.dot(U, np.diag(R[:, i])), Uinv)) for i in range(N)]
         # print(E)
         intermediate_populations = [np.dot(E[i], p) for i in range(N)]
         return intermediate_populations

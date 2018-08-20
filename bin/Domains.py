@@ -40,7 +40,7 @@ def Propagate(M, p, time):
     return p1
 
 
-def Propagate_stationary(M, p, dt, ddt):
+def Propagate_stationary(M, p, dt, ddt=1):
 
     e, U = eigen(M.transpose())
     times = np.arange(0, dt, ddt) + ddt
@@ -57,7 +57,7 @@ def Propagate_stationary(M, p, dt, ddt):
     return intermediate_populations
 
 
-def Propagate_trunc2(M, p, dt, ddt):
+def Propagate_trunc2(M, p, dt, ddt=1):
 
     e, U = eigen(M.transpose())
     times = np.arange(0, dt, ddt) + ddt
@@ -523,7 +523,7 @@ class SpeciesPool(object):
                 preprocessing.normalize([[rate(species[0].get_G(), 1) for species in species_list]
                                         for t in time_array], norm='l1', axis=1)
             '''
-
+            intermediate_population_arrays = Propagate_stationary(rate_matrix, population_array, dt, ddt=ddt)
         else:
             for i in range(self.size):
                 population_array[i] = species_list[i][1]
@@ -539,7 +539,7 @@ class SpeciesPool(object):
                 rate_matrix[i][i] = -np.sum(rate_matrix[i])
             '''
             # Master Equation
-            intermediate_population_arrays = Propagate(rate_matrix, population_array, dt, ddt=ddt)
+            intermediate_population_arrays = Propagate_trunc2(rate_matrix, population_array, dt, ddt=ddt)
         population_array = intermediate_population_arrays[-1]
         # Remapping
         for i in range(self.size):

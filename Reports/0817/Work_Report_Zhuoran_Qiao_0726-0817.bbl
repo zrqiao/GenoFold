@@ -1,0 +1,27 @@
+\begin{thebibliography}{1}
+
+\bibitem{RaviprasadAduri2007}
+Raviprasad Aduri, Brian~T. Psciuk, Pirro Saro, Hariprakash Taniga, H.~Bernhard
+  Schlegel, and John SantaLucia.
+\newblock {AMBER force field parameters for the naturally occurring modified
+  nucleosides in RNA}.
+\newblock {\em Journal of Chemical Theory and Computation}, 3(4):1464--1475,
+  2007.
+
+\bibitem{Gultyaev1995}
+Alexander~P. Gultyaev, F.~H.D. {Van Batenburg}, and Cornelis~W.A. Pleij.
+\newblock {The computer simulation of RNA folding pathways using a genetic
+  algorithm}.
+\newblock Technical Report~1, 1995.
+
+\bibitem{Clote}
+Peter Clote and Amir~H. Bayegan.
+\newblock {RNA folding kinetics using Monte Carlo and Gillespie algorithms?}
+\newblock Technical report, 2017.
+
+\bibitem{Sun2018}
+Tingting Sun, Chenhan Zhao, and Shi~Jie Chen.
+\newblock {Predicting Cotranscriptional Folding Kinetics for Riboswitch}.
+\newblock {\em Journal of Physical Chemistry B}, 2018.
+
+\end{thebibliography}

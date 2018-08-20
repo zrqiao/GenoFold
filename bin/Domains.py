@@ -467,13 +467,7 @@ class SpeciesPool(object):
         species_list = list(self.species.items())
         population_array = np.zeros(self.size)
         # TODO: parallel optimization
-        for i in range(self.size):
-            population_array[i] = species_list[i][1]
-            for j in range(self.size):
-                rate_matrix[i][j] = pathways.get_rate(species_list[i][0], species_list[j][0])
-            rate_matrix[i][i] = -np.sum(rate_matrix[i])
 
-        k_fastest = np.max(rate_matrix)
         self.timestamp += dt
         time_array = np.arange(0, dt, ddt) + self.timestamp + ddt
 
@@ -483,6 +477,13 @@ class SpeciesPool(object):
                                         for t in time_array], norm='l1', axis=1)
             return species_list, intermediate_population_arrays, time_array
 
+        for i in range(self.size):
+            population_array[i] = species_list[i][1]
+            for j in range(self.size):
+                rate_matrix[i][j] = pathways.get_rate(species_list[i][0], species_list[j][0])
+            rate_matrix[i][i] = -np.sum(rate_matrix[i])
+
+        k_fastest = np.max(rate_matrix)
         for i in range(self.size):  # Make it a REAL sparse matrix
             for j in range(self.size):
                 if rate_matrix[i][j] < k_fastest * rate_cutoff:

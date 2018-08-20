@@ -475,22 +475,22 @@ class SpeciesPool(object):
             intermediate_population_arrays = \
                 preprocessing.normalize([[rate(species[0].get_G(), 1) for species in species_list]
                                         for t in time_array], norm='l1', axis=1)
-            return species_list, intermediate_population_arrays, time_array
+        #    return species_list, intermediate_population_arrays, time_array
+        else:
+            for i in range(self.size):
+                population_array[i] = species_list[i][1]
+                for j in range(self.size):
+                    rate_matrix[i][j] = pathways.get_rate(species_list[i][0], species_list[j][0])
+                rate_matrix[i][i] = -np.sum(rate_matrix[i])
 
-        for i in range(self.size):
-            population_array[i] = species_list[i][1]
-            for j in range(self.size):
-                rate_matrix[i][j] = pathways.get_rate(species_list[i][0], species_list[j][0])
-            rate_matrix[i][i] = -np.sum(rate_matrix[i])
-
-        k_fastest = np.max(rate_matrix)
-        for i in range(self.size):  # Make it a REAL sparse matrix
-            for j in range(self.size):
-                if rate_matrix[i][j] < k_fastest * rate_cutoff:
-                    rate_matrix[i][j] = 0
-            rate_matrix[i][i] = -np.sum(rate_matrix[i])
-        # Master Equation
-        intermediate_population_arrays = Propagate(rate_matrix, population_array, dt, ddt=ddt)
+            k_fastest = np.max(rate_matrix)
+            for i in range(self.size):  # Make it a REAL sparse matrix
+                for j in range(self.size):
+                    if rate_matrix[i][j] < k_fastest * rate_cutoff:
+                        rate_matrix[i][j] = 0
+                rate_matrix[i][i] = -np.sum(rate_matrix[i])
+            # Master Equation
+            intermediate_population_arrays = Propagate(rate_matrix, population_array, dt, ddt=ddt)
         population_array = intermediate_population_arrays[-1]
         # Remapping
         for i in range(self.size):

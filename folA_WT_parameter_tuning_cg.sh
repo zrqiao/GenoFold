@@ -10,12 +10,12 @@ sequence=ATACCCGTTTTTTGGGCTAACAGGAGGAATTACATATGATCAGTCTGATTGCGGCGTTAGCGGTAGATCGC
 
 module load python
 
-#for ((i=1;i<=14;i=i+1))
-#do
-#    echo -e "Simulating with k = $i"
-#    python bin/GenoFold.py --working-path ./folA_WT/ext_fds_CG5_pool50 --k 1e$i --foldons-path folA_WT/foldons_subopt_CG.dat --pool-size 50 --CG-length 5 folA_WT &
-#    sleep 1m
-#done
+for ((i=1;i<=14;i=i+1))
+do
+    echo -e "Simulating with k = $i"
+    python bin/GenoFold.py --working-path ./folA_WT/ext_fds_CG5_pool50 --k 1e$i --foldons-path folA_WT/foldons_subopt_CG.dat --pool-size 50 --CG-length 5 folA_WT &
+    sleep 1m
+done
 python bin/GenoFold.py --working-path ./folA_WT/ext_fds_CG5_pool1000 --stationary --foldons-path folA_WT/foldons_subopt_CG.dat --pool-size 1000 --CG-length 5 folA_WT
 
 # monitor output (need formatted string)

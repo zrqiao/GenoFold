@@ -33,7 +33,7 @@ def eigen(M):
     E, EL, ER = mp.eig_sort(E, EL, ER)
     # print(ER)
     eigenVectors = np.array(ER.apply(mp.re).tolist(), dtype=float)
-    eigenValues = np.array(E.apply(mp.re), dtype=float)
+    eigenValues = np.array([mp.re(x) for x in E], dtype=float)
     # idx = eigenValues.argsort()[::-1]
     # eigenValues = eigenValues
     if len(eigenVectors.shape)==1: eigenVectors = [eigenVectors]

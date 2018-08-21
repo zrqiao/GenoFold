@@ -3,13 +3,14 @@ from difflib import SequenceMatcher
 import numpy as np
 from collections import defaultdict
 import operator
+from decimal import *
 from scipy.linalg import expm
-import numpy.linalg as linalg
+import scipy.linalg as linalg
 import copy
 import time
 from sklearn import preprocessing
-import matlab
-import matlab.engine
+# import matlab
+# import matlab.engine
 
 #Change following routines for other environments:
 Temperature = 37
@@ -20,9 +21,9 @@ subopt_gap=0.99
 ##
 
 
-def eigen(eng, M):
-    [eigenValues, eigenVectors] = eng.eig(M)
-    idx = eng.diag(eigenValues).argsort()[::-1]
+def eigen(M):
+    eigenValues, eigenVectors = linalg.eig(M)
+    idx = eigenValues.argsort()[::-1]
     eigenValues = eigenValues[idx]
     eigenVectors = eigenVectors[:, idx]
     return eigenValues, eigenVectors
@@ -37,25 +38,25 @@ def Propagate(eng, M, p, time):
     Uinv = np.linalg.inv(U)
     # print(np.exp(time*np.diag(e)))
     E = np.real(np.dot(np.dot(U, np.diag(np.exp(time*e))), Uinv))
-    print(E)
+    # print(E)
     p1 = np.dot(p, E)
     return p1
 
 
-def Propagate_stationary(eng, M, p, dt, ddt=1):
+def Propagate_stationary(M, p, dt, ddt=1):
 
-    e, U = eigen(eng, M.transpose())
+    e, U = eigen(M.transpose())
     times = np.arange(0, dt, ddt) + ddt
     # print(e)
     # the eigenvalues are distinct -- possibly complex, but
     # E will always be real
-    Uinv = eng.inv(U)
+    # Uinv = linalg.inv(U)
     R = np.zeros(len(p))
     R[0] = 1
     # print(np.exp(time*np.diag(e)))
-    E = np.real(np.dot(np.dot(U, np.diag(R)), Uinv))
-    intermediate_populations = preprocessing.normalize([U[:0] for t in times], norm='l1', axis=0)
-    print(E)
+    # E = np.real(np.dot(np.dot(U, np.diag(R)), Uinv))
+    intermediate_populations = preprocessing.normalize([np.absolute(U[:,0]) for t in times], norm='l1', axis=1)
+    # print(E)
     return intermediate_populations
 
 
@@ -63,7 +64,7 @@ def Propagate_trunc2(eng, M, p, dt, ddt=1):
 
     e, U = eigen(eng, M.transpose())
     times = np.arange(0, dt, ddt) + ddt
-    # print(e)
+    print(e)
     # the eigenvalues are distinct -- possibly complex, but
     # E will always be real
     Uinv = np.linalg.inv(U)
@@ -515,10 +516,10 @@ class SpeciesPool(object):
 
     def evolution(self, pathways, dt, ddt, stationary=False):
         # print(self.size)
-        eng = matlab.engine.start_matlab()
-        rate_matrix = np.zeros((self.size, self.size))
+        # eng = matlab.engine.start_matlab()
+        rate_matrix = np.zeros((self.size, self.size), dtype='float128')
         species_list = list(self.species.items())
-        population_array = np.zeros(self.size)
+        population_array = np.zeros(self.size, dtype='float128')
         # TODO: parallel optimization
 
         self.timestamp += dt
@@ -529,8 +530,8 @@ class SpeciesPool(object):
                 rate_matrix[i][j] = pathways.get_rate(species_list[i][0], species_list[j][0])
             rate_matrix[i][i] = -np.sum(rate_matrix[i])
 
-        rate_matrix = matlab.double(rate_matrix)
-        population_array = matlab.double(population_array)
+        # rate_matrix = matlab.double(rate_matrix)
+        # population_array = matlab.double(population_array)
 
         if stationary:
             '''

@@ -13,8 +13,8 @@ module load python
 for ((i=1;i<=40;i=i+4))
 do
     echo -e "Simulating with k = $i"
-    python bin/GenoFold.py --working-path ./folA_WT/ext_fds_CG5_eig2 --k 1e$i --foldons-path folA_WT/foldons_subopt_CG.dat --pool-size 100 --CG-length 5 folA_WT &
-    sleep 1m
+    #python bin/GenoFold.py --working-path ./folA_WT/ext_fds_CG5_eig2 --k 1e$i --foldons-path folA_WT/foldons_subopt_CG.dat --pool-size 100 --CG-length 5 folA_WT &
+    #sleep 1m
 done
 python bin/GenoFold.py --working-path ./folA_WT/ext_fds_CG5_eig2 --stationary --foldons-path folA_WT/foldons_subopt_CG.dat --pool-size 100 --CG-length 5 folA_WT
 

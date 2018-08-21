@@ -9,6 +9,8 @@ import scipy.linalg as linalg
 import copy
 import time
 from sklearn import preprocessing
+from sympy import exp, N, S
+from sympy.matrices import Matrix
 # import matlab
 # import matlab.engine
 
@@ -22,7 +24,8 @@ subopt_gap=0.99
 
 
 def eigen(M):
-    eigenValues, eigenVectors = linalg.eig(M)
+    M = Matrix(M).applyfunc(lambda x: N(x, 100))
+    eigenValues, eigenVectors = M.eigenvals(), M.eigenvects()
     idx = eigenValues.argsort()[::-1]
     eigenValues = eigenValues[idx]
     eigenVectors = eigenVectors[:, idx]
@@ -35,7 +38,7 @@ def Propagate(eng, M, p, time):
     # print(e)
     # the eigenvalues are distinct -- possibly complex, but
     # E will always be real
-    Uinv = np.linalg.inv(U)
+    Uinv = linalg.inv(U)
     # print(np.exp(time*np.diag(e)))
     E = np.real(np.dot(np.dot(U, np.diag(np.exp(time*e))), Uinv))
     # print(E)
@@ -110,7 +113,7 @@ def similar(a, b):
 
 
 def rate(dG, k):
-    return k*np.exp(-dG/(R* (273.15+Temperature)))
+    return Decimal(k*np.exp(-dG/(R* (273.15+Temperature))))
     # return k
 
 

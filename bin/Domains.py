@@ -8,6 +8,8 @@ import numpy.linalg as linalg
 import copy
 import time
 from sklearn import preprocessing
+import matlab
+import matlab.engine
 
 #Change following routines for other environments:
 Temperature = 37
@@ -18,17 +20,17 @@ subopt_gap=0.99
 ##
 
 
-def eigen(M):
-    eigenValues, eigenVectors = linalg.eig(M)
-    idx = eigenValues.argsort()[::-1]
+def eigen(eng, M):
+    [eigenValues, eigenVectors] = eng.eig(M)
+    idx = eng.diag(eigenValues).argsort()[::-1]
     eigenValues = eigenValues[idx]
     eigenVectors = eigenVectors[:, idx]
     return eigenValues, eigenVectors
 
 
-def Propagate(M, p, time):
+def Propagate(eng, M, p, time):
 
-    e, U = eigen(M)
+    e, U = eigen(eng, M)
     # print(e)
     # the eigenvalues are distinct -- possibly complex, but
     # E will always be real
@@ -40,26 +42,26 @@ def Propagate(M, p, time):
     return p1
 
 
-def Propagate_stationary(M, p, dt, ddt=1):
+def Propagate_stationary(eng, M, p, dt, ddt=1):
 
-    e, U = eigen(M.transpose())
+    e, U = eigen(eng, M.transpose())
     times = np.arange(0, dt, ddt) + ddt
     # print(e)
     # the eigenvalues are distinct -- possibly complex, but
     # E will always be real
-    Uinv = np.linalg.inv(U)
+    Uinv = eng.inv(U)
     R = np.zeros(len(p))
     R[0] = 1
     # print(np.exp(time*np.diag(e)))
     E = np.real(np.dot(np.dot(U, np.diag(R)), Uinv))
-    intermediate_populations = [np.dot(E, p) for t in times]
+    intermediate_populations = preprocessing.normalize([U[:0] for t in times], norm='l1', axis=0)
     # print(E)
     return intermediate_populations
 
 
-def Propagate_trunc2(M, p, dt, ddt=1):
+def Propagate_trunc2(eng, M, p, dt, ddt=1):
 
-    e, U = eigen(M.transpose())
+    e, U = eigen(eng, M.transpose())
     times = np.arange(0, dt, ddt) + ddt
     # print(e)
     # the eigenvalues are distinct -- possibly complex, but
@@ -513,6 +515,7 @@ class SpeciesPool(object):
 
     def evolution(self, pathways, dt, ddt, stationary=False):
         # print(self.size)
+        eng = matlab.engine.start_matlab()
         rate_matrix = np.zeros((self.size, self.size))
         species_list = list(self.species.items())
         population_array = np.zeros(self.size)
@@ -520,6 +523,14 @@ class SpeciesPool(object):
 
         self.timestamp += dt
         time_array = np.arange(0, dt, ddt) + self.timestamp + ddt
+        for i in range(self.size):
+            population_array[i] = species_list[i][1]
+            for j in range(self.size):
+                rate_matrix[i][j] = pathways.get_rate(species_list[i][0], species_list[j][0])
+            rate_matrix[i][i] = -np.sum(rate_matrix[i])
+
+        rate_matrix = matlab.double(rate_matrix)
+        population_array = matlab.double(population_array)
 
         if stationary:
             '''
@@ -529,11 +540,6 @@ class SpeciesPool(object):
             '''
             intermediate_population_arrays = Propagate_stationary(rate_matrix, population_array, dt, ddt=ddt)
         else:
-            for i in range(self.size):
-                population_array[i] = species_list[i][1]
-                for j in range(self.size):
-                    rate_matrix[i][j] = pathways.get_rate(species_list[i][0], species_list[j][0])
-                rate_matrix[i][i] = -np.sum(rate_matrix[i])
             '''
             k_fastest = np.max(rate_matrix)
             for i in range(self.size):  # Make it a REAL sparse matrix

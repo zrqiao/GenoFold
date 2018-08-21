@@ -37,7 +37,7 @@ def Propagate(eng, M, p, time):
     Uinv = np.linalg.inv(U)
     # print(np.exp(time*np.diag(e)))
     E = np.real(np.dot(np.dot(U, np.diag(np.exp(time*e))), Uinv))
-    # print(E)
+    print(E)
     p1 = np.dot(p, E)
     return p1
 
@@ -55,7 +55,7 @@ def Propagate_stationary(eng, M, p, dt, ddt=1):
     # print(np.exp(time*np.diag(e)))
     E = np.real(np.dot(np.dot(U, np.diag(R)), Uinv))
     intermediate_populations = preprocessing.normalize([U[:0] for t in times], norm='l1', axis=0)
-    # print(E)
+    print(E)
     return intermediate_populations
 
 

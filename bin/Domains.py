@@ -4,6 +4,7 @@ import numpy as np
 from collections import defaultdict
 import operator
 from decimal import *
+import mpmath as mp
 from scipy.linalg import expm
 import scipy.linalg as linalg
 import copy
@@ -24,11 +25,19 @@ subopt_gap=0.99
 
 
 def eigen(M):
-    M = Matrix(M).applyfunc(lambda x: N(x, 100))
-    eigenValues, eigenVectors = M.eigenvals(), M.eigenvects()
-    idx = eigenValues.argsort()[::-1]
-    eigenValues = eigenValues[idx]
-    eigenVectors = eigenVectors[:, idx]
+    print(M)
+    M = mp.matrix(M.tolist())
+    # eigenValues, eigenVectors = mp.eig(M)
+    # eigenValues = np.diag(np.array(eigenMatrix).astype('float128'))
+    E, EL, ER = mp.eig(M,left = True, right = True)
+    E, EL, ER = mp.eig_sort(E, EL, ER)
+    eigenVectors = np.array(ER.tolist(), dtype=float)
+    eigenValues = np.array(E, dtype=float)
+    # idx = eigenValues.argsort()[::-1]
+    # eigenValues = eigenValues
+    if len(eigenVectors.shape)==1: eigenVectors = [eigenVectors]
+    print(eigenValues)
+    print(eigenVectors)
     return eigenValues, eigenVectors
 
 
@@ -58,7 +67,7 @@ def Propagate_stationary(M, p, dt, ddt=1):
     R[0] = 1
     # print(np.exp(time*np.diag(e)))
     # E = np.real(np.dot(np.dot(U, np.diag(R)), Uinv))
-    intermediate_populations = preprocessing.normalize([np.absolute(U[:,0]) for t in times], norm='l1', axis=1)
+    intermediate_populations = preprocessing.normalize([np.absolute(U[:,-1]) for t in times], norm='l1', axis=1)
     # print(E)
     return intermediate_populations
 
@@ -113,7 +122,7 @@ def similar(a, b):
 
 
 def rate(dG, k):
-    return Decimal(k*np.exp(-dG/(R* (273.15+Temperature))))
+    return k*np.exp(-dG/(R* (273.15+Temperature)))
     # return k
 
 
@@ -520,9 +529,9 @@ class SpeciesPool(object):
     def evolution(self, pathways, dt, ddt, stationary=False):
         # print(self.size)
         # eng = matlab.engine.start_matlab()
-        rate_matrix = np.zeros((self.size, self.size), dtype='float128')
+        rate_matrix = np.zeros((self.size, self.size))
         species_list = list(self.species.items())
-        population_array = np.zeros(self.size, dtype='float128')
+        population_array = np.zeros(self.size)
         # TODO: parallel optimization
 
         self.timestamp += dt

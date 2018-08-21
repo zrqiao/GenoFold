@@ -31,8 +31,9 @@ def eigen(M):
     # eigenValues = np.diag(np.array(eigenMatrix).astype('float128'))
     E, EL, ER = mp.eig(M,left = True, right = True)
     E, EL, ER = mp.eig_sort(E, EL, ER)
-    eigenVectors = np.array(ER.tolist(), dtype=float)
-    eigenValues = np.array(E, dtype=float)
+    # print(ER)
+    eigenVectors = np.array(ER.apply(mp.re).tolist(), dtype=float)
+    eigenValues = np.array(E.apply(mp.re), dtype=float)
     # idx = eigenValues.argsort()[::-1]
     # eigenValues = eigenValues
     if len(eigenVectors.shape)==1: eigenVectors = [eigenVectors]
@@ -122,8 +123,8 @@ def similar(a, b):
 
 
 def rate(dG, k):
-    return k*np.exp(-dG/(R* (273.15+Temperature)))
-    # return k
+    # return k*np.exp(-dG/(R* (273.15+Temperature)))
+    return k
 
 
 def boltzmann_factor(dG):

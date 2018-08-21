@@ -10,8 +10,8 @@ nupack_env = {'NUPACKHOME' : os.environ['HOME'] + '/nupack3.2.2'}
 subopt_gap = 0.99
 
 # Change following routines for other environments:
-L_init = 1  # Initiation unit
-dL = 1  # elongation unit (also means CG unit)
+L_init = 5  # Initiation unit
+dL = 5  # elongation unit (also means CG unit)
 MULTI_PROCESS = 64
 
 

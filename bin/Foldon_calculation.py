@@ -12,7 +12,7 @@ subopt_gap = 0.99
 # Change following routines for other environments:
 L_init = 5  # Initiation unit
 dL = 5  # elongation unit (also means CG unit)
-MULTI_PROCESS = 64
+MULTI_PROCESS = 192
 
 
 def nupack_mfe(sequence, T=37):
@@ -88,7 +88,7 @@ if __name__ == '__main__':
                 save_foldon(l_bounds[i], current_length, new_foldons_ss[i], foldons)
             foldons.flush()
     else:
-        for current_length in range(L_init, sequence_length+dL, dL):
+        for current_length in range(L_init, sequence_length, dL):
             l_bounds = np.arange(0, current_length, dL)
             multi_pool = Pool()
             new_foldons_sss = list(multi_pool.map(nupack_subopt, [full_sequence[l_bound:current_length] for l_bound in l_bounds]))
@@ -98,6 +98,16 @@ if __name__ == '__main__':
                 for ss in new_foldons_sss[i]:
                     save_foldon(l_bounds[i], current_length, ss, foldons)
             foldons.flush()
+        current_length = sequence_length
+        l_bounds = np.arange(0, current_length, dL)
+        multi_pool = Pool()
+        new_foldons_sss = list(multi_pool.map(nupack_subopt, [full_sequence[l_bound:current_length] for l_bound in l_bounds]))
+        multi_pool.close()
+        multi_pool.join()
+        for i in range(len(l_bounds)):
+            for ss in new_foldons_sss[i]:
+                save_foldon(l_bounds[i], current_length, ss, foldons)
+        foldons.flush()
 
     foldons.close()
     exit()

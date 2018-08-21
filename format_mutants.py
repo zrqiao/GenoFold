@@ -16,7 +16,7 @@ with open(input, 'r+') as f:
                 os.makedirs(name)
             with open('mutants.in', 'a') as f1:
                 f1.write(name+'\n')
-        else:
+        elif line.rstrip():
             dnaseq=UTR+line.strip('\n')
             rnaseq=rna_seq(dnaseq)
             with open('sequences/'+name+'.in', 'w+') as rnaf:

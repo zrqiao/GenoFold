@@ -394,7 +394,7 @@ class Domain(object):
 #        self.isfoldon = True
 
 
-class Pathways(object):     #  Indices of a pathway should be two domain(for robustness, can be improved by using IFR for indices)
+class Pathways(object):  # Indices of a pathway should be two domain(for robustness, can be improved by using IFR for indices)
     def __init__(self, k):  # Need pre-exponential factor
         self.collection = defaultdict(dict)
         self.k = k

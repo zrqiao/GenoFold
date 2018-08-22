@@ -30,19 +30,23 @@ def eigen(M):
     # M = mp.matrix(M.tolist())
     # eigenValues, eigenVectors = mp.eig(M)
     # eigenValues = np.diag(np.array(eigenMatrix).astype('float128'))
-    E, EL, ER = mp.eig(M,left = True, right = True)
+    E, EL, ER = mp.eig(M, left = True, right = True)
     E, EL, ER = mp.eig_sort(E, EL, ER)
     # print(ER*mp.diag(E)*EL)
-    eigenVectors = np.array(ER.apply(mp.re).tolist(), dtype=float)
-    eigenValues = np.array([mp.re(x) for x in E], dtype=float)
+    eigenVectors = ER
+    eigenValues = E
+    # eigenVectors = np.array(ER.apply(mp.re).tolist(), dtype=float)
+    # eigenValues = np.array([mp.re(x) for x in E], dtype=float)
     # idx = eigenValues.argsort()[::-1]
     # eigenValues = eigenValues
-    if len(eigenVectors.shape)==1: eigenVectors = [eigenVectors]
+    if len(eigenVectors.shape) == 1:
+        eigenVectors = [eigenVectors]
     # print(eigenValues)
     # print(eigenVectors)
     return eigenValues, eigenVectors
 
 
+'''
 def Propagate(M, p, time):
 
     e, U = eigen(M)
@@ -55,68 +59,55 @@ def Propagate(M, p, time):
     # print(E)
     p1 = np.dot(p, E)
     return p1
+'''
 
 
 def Propagate_stationary(M, p, dt, ddt=1):
 
-    e, U = eigen(M.T)
-    times = np.arange(0, dt, ddt) + ddt
-    # print(e)
-    # the eigenvalues are distinct -- possibly complex, but
-    # E will always be real
-    # Uinv = linalg.inv(U)
-    R = np.zeros(len(p))
-    R[0] = 1
+    E, EL, ER = mp.eig(M, left = True, right = True)
+    E, EL, ER = mp.eig_sort(E, EL, ER)
+    times = mp.arange(dt, dt+ddt, ddt)
+    R = [0]*(len(E)-1)
+    R.append(1)
     # print(np.exp(time*np.diag(e)))
     # E = np.real(np.dot(np.dot(U, np.diag(R)), Uinv))
-    intermediate_populations = preprocessing.normalize([np.absolute(U[:, -1]) for t in times], norm='l1', axis=1)
+    intermediate_populations = [ER*mp.diag(R)*EL*p.apply(mp.re).tolist() for t in times]
     # print(E)
     return intermediate_populations
 
 
 def Propagate_trunc2(M, p, dt, ddt=1):
 
-    e, U = eigen(M.T)
-    times = np.arange(0, dt, ddt) + ddt
-    print(e)
-    # the eigenvalues are distinct -- possibly complex, but
-    # E will always be real
-    Uinv = np.linalg.inv(U)
+    E, EL, ER = mp.eig(M, left = True, right = True)
+    E, EL, ER = mp.eig_sort(E, EL, ER)
+    times = mp.arange(dt, dt+ddt, ddt)
     N = int(dt/ddt)
     if len(p) == 1:
         intermediate_populations = [p for i in range(N)]
         return intermediate_populations
     else:
-        R = np.zeros((len(p), N))
-        R[0] = 1
-        R[1] = np.exp(e[1]*times)
-        # print(np.exp(time*np.diag(e)))
-        E = [np.real(np.dot(np.dot(U, np.diag(R[:, i])), Uinv)) for i in range(N)]
-        # print(E)
-        intermediate_populations = [np.dot(E[i], p) for i in range(N)]
+        R = [[0 for i in range(len(p))] for j in range(N)]
+        R[-1] = [1 for i in range(len(p))]
+        R[-2] = [mp.exp(E[-2]*t) for t in times]
+        intermediate_populations = [ER*mp.diag(R[:, i])*EL*p.apply(mp.re).tolist() for i in range(N)]
         return intermediate_populations
 
 
-'''
 def Propagate(M, p, dt, ddt=1):
-    time_1=time.time()
     # time_series = np.arange(0, dt, ddt) + dt
     if dt > ddt:
         # intermediate_populations = expm_multiply(M.transpose(), p, ddt, dt, dt/ddt, True)
         # intermediate_populations = np.zeros((dt/ddt, len(p), len(p)))
-        times = np.arange(0, dt, ddt) + ddt
-        intermediate_populations = [np.dot(expm(t*M.transpose()), p) for t in times]
-        
+        times = mp.arange(dt, dt+ddt, ddt)
+        intermediate_populations = [mp.expm(t*M.T) * p for t in times]
     elif dt == ddt: 
-        intermediate_populations = [np.dot(expm(dt*M.transpose()), p)]
-
+        intermediate_populations = [mp.expm(dt*M.T) * p]
     else:
         print('Invalid differential time step')
         return False
     # print(time.time()-time_1)
     return intermediate_populations
     # return np.dot(p, expm(time*M))
-'''
 
 
 def similar(a, b):

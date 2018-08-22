@@ -26,20 +26,20 @@ mp.dps = 100
 
 
 def eigen(M):
-    print(M)
+    # print(M)
     # M = mp.matrix(M.tolist())
     # eigenValues, eigenVectors = mp.eig(M)
     # eigenValues = np.diag(np.array(eigenMatrix).astype('float128'))
     E, EL, ER = mp.eig(M,left = True, right = True)
     E, EL, ER = mp.eig_sort(E, EL, ER)
-    print(ER)
+    # print(ER*mp.diag(E)*EL)
     eigenVectors = np.array(ER.apply(mp.re).tolist(), dtype=float)
     eigenValues = np.array([mp.re(x) for x in E], dtype=float)
     # idx = eigenValues.argsort()[::-1]
     # eigenValues = eigenValues
     if len(eigenVectors.shape)==1: eigenVectors = [eigenVectors]
-    print(eigenValues)
-    print(eigenVectors)
+    # print(eigenValues)
+    # print(eigenVectors)
     return eigenValues, eigenVectors
 
 
@@ -375,7 +375,7 @@ class Domain(object):
         
         if IFRa >= IFRb:
             diff = IFRa - IFRb
-            if not diff:
+            if not diff:  # NOTE: cannot discern identical domains here
                 return other.IFR[0], other.IFR[-1]  # Global rearrangement
             for i in range(len(other.IFR)-1):
                 if max(diff) < other.IFR[i+1] and min(diff) > other.IFR[i]:
@@ -540,10 +540,14 @@ class SpeciesPool(object):
         self.timestamp += dt
         time_array = np.arange(0, dt, ddt) + self.timestamp + ddt
         for i in range(self.size):
+            diag_i = 0
             population_array[i] = species_list[i][1]
             for j in range(self.size):
-                rate_matrix[i][j] = pathways.get_rate(species_list[i][0], species_list[j][0])
-            rate_matrix[i][i] = -np.sum(rate_matrix[i])
+                if j == i: continue
+                rate = pathways.get_rate(species_list[i][0], species_list[j][0])
+                diag_i += rate
+                rate_matrix[i, j] = rate
+            rate_matrix[i, i] = -diag_i
 
         # rate_matrix = matlab.double(rate_matrix)
         # population_array = matlab.double(population_array)

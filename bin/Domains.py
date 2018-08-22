@@ -21,17 +21,18 @@ k0 = 1
 R = 1.9858775e-3  # G in kcal/mol
 rate_cutoff = 1e-20  # minimum allowed rate constant
 subopt_gap=0.99
+mp.dps = 100
 ##
 
 
 def eigen(M):
     print(M)
-    M = mp.matrix(M.tolist())
+    # M = mp.matrix(M.tolist())
     # eigenValues, eigenVectors = mp.eig(M)
     # eigenValues = np.diag(np.array(eigenMatrix).astype('float128'))
     E, EL, ER = mp.eig(M,left = True, right = True)
     E, EL, ER = mp.eig_sort(E, EL, ER)
-    # print(ER)
+    print(ER)
     eigenVectors = np.array(ER.apply(mp.re).tolist(), dtype=float)
     eigenValues = np.array([mp.re(x) for x in E], dtype=float)
     # idx = eigenValues.argsort()[::-1]
@@ -42,9 +43,9 @@ def eigen(M):
     return eigenValues, eigenVectors
 
 
-def Propagate(eng, M, p, time):
+def Propagate(M, p, time):
 
-    e, U = eigen(eng, M)
+    e, U = eigen(M)
     # print(e)
     # the eigenvalues are distinct -- possibly complex, but
     # E will always be real
@@ -58,7 +59,7 @@ def Propagate(eng, M, p, time):
 
 def Propagate_stationary(M, p, dt, ddt=1):
 
-    e, U = eigen(M.transpose())
+    e, U = eigen(M.T)
     times = np.arange(0, dt, ddt) + ddt
     # print(e)
     # the eigenvalues are distinct -- possibly complex, but
@@ -68,14 +69,14 @@ def Propagate_stationary(M, p, dt, ddt=1):
     R[0] = 1
     # print(np.exp(time*np.diag(e)))
     # E = np.real(np.dot(np.dot(U, np.diag(R)), Uinv))
-    intermediate_populations = preprocessing.normalize([np.absolute(U[:,-1]) for t in times], norm='l1', axis=1)
+    intermediate_populations = preprocessing.normalize([np.absolute(U[:, -1]) for t in times], norm='l1', axis=1)
     # print(E)
     return intermediate_populations
 
 
-def Propagate_trunc2(eng, M, p, dt, ddt=1):
+def Propagate_trunc2(M, p, dt, ddt=1):
 
-    e, U = eigen(eng, M.transpose())
+    e, U = eigen(M.T)
     times = np.arange(0, dt, ddt) + ddt
     print(e)
     # the eigenvalues are distinct -- possibly complex, but
@@ -123,8 +124,8 @@ def similar(a, b):
 
 
 def rate(dG, k):
-    # return k*np.exp(-dG/(R* (273.15+Temperature)))
-    return k
+    return k*mp.exp(-dG/(R* (273.15+Temperature)))
+    # return k
 
 
 def boltzmann_factor(dG):
@@ -374,10 +375,11 @@ class Domain(object):
         
         if IFRa >= IFRb:
             diff = IFRa - IFRb
-            if not diff : return False
+            if not diff:
+                return other.IFR[0], other.IFR[-1]  # Global rearrangement
             for i in range(len(other.IFR)-1):
                 if max(diff) < other.IFR[i+1] and min(diff) > other.IFR[i]:
-                    return other.IFR[i], other.IFR[i+1] #Exact indices of rearrangement site
+                    return other.IFR[i], other.IFR[i+1]  # Exact indices of rearrangement site
             return False
         else:
             return False
@@ -411,7 +413,7 @@ class Pathways(object):     #  Indices of a pathway should be two domain(for rob
     def add(self, source, sink, rate):
         self.collection[source][sink] = rate
 
-    def pathway_link(self, domain1, domain2, k):    #If no path exists, call this
+    def pathway_link(self, domain1, domain2, k):    # If no path exists, call this
         # NOTE: finding the minimum rearrangement site
         trial_forward = domain1.check_availability(domain2)
         if trial_forward:
@@ -432,14 +434,14 @@ class Pathways(object):     #  Indices of a pathway should be two domain(for rob
             my_site, other_site= source, sink
         else:
             my_site = source.get_domain(source.sequence[sub_l_bound-source.l_bound:sub_r_bound-source.l_bound],
-                                                       source.structure[sub_l_bound-source.l_bound:sub_r_bound-source.l_bound],
+                                            source.structure[sub_l_bound-source.l_bound:sub_r_bound-source.l_bound],
                                                        sub_l_bound, sub_r_bound)
             other_site = sink.get_domain(sink.sequence[sub_l_bound-sink.l_bound:sub_r_bound-sink.l_bound],
-                                                       sink.structure[sub_l_bound-sink.l_bound:sub_r_bound-sink.l_bound],
+                                            sink.structure[sub_l_bound-sink.l_bound:sub_r_bound-sink.l_bound],
                                      sub_l_bound, sub_r_bound)
         # NOTE: rate calculation interface
         # if already exists
-        if self.has_path(my_site, other_site):# If calculated
+        if self.has_path(my_site, other_site):  # If calculated
             forward_rate = self.get_rate(my_site, other_site)
             backward_rate = self.get_rate(other_site, my_site)
         else:
@@ -530,9 +532,9 @@ class SpeciesPool(object):
     def evolution(self, pathways, dt, ddt, stationary=False):
         # print(self.size)
         # eng = matlab.engine.start_matlab()
-        rate_matrix = np.zeros((self.size, self.size))
+        rate_matrix = mp.matrix(self.size, self.size)
         species_list = list(self.species.items())
-        population_array = np.zeros(self.size)
+        population_array = mp.matrix([0 for i in range(self.size)])
         # TODO: parallel optimization
 
         self.timestamp += dt

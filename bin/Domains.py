@@ -22,7 +22,8 @@ R = 1.9858775e-3  # G in kcal/mol
 rate_cutoff = 1e-20  # minimum allowed rate constant
 subopt_gap=0.99
 mp.mp.prec = 333
-mp.mp.dps = 50
+mp.mp.dps = 60
+mp.mp.pretty = True
 ##
 
 
@@ -68,16 +69,17 @@ def Propagate_stationary(M, p, dt, ddt=1):
     E, EL, ER = mp.eig(M.T, left = True, right = True)
     E, EL, ER = mp.eig_sort(E, EL, ER)
     times = range(ddt, dt+ddt, ddt)
+    UR = ER**-1
     R = [0]*(len(E)-1)
     R.append(1)
     # print(M.T)
-    print(E)
+    # print(E)
     intermediate_populations = []
     # print(np.exp(time*np.diag(e)))
     # E = np.real(np.dot(np.dot(U, np.diag(R)), Uinv))
     for i in range(len(times)):
         # print(mp.diag(R[i]))
-        A = ER*mp.diag(R)*EL*p
+        A = ER*mp.diag(R)*UR*p
         intermediate_populations.append(np.array((A.T).apply(mp.re).tolist()[0], dtype=float))
     print(intermediate_populations)
     # intermediate_populations = [np.array(((ER*mp.diag(R)*EL*p).T).apply(mp.re).tolist()[0], dtype=float) for t in times]
@@ -117,19 +119,22 @@ def Propagate_trunc2(M, p, dt, ddt=1):
 
 def Propagate(M, p, dt, ddt=1): 
     E, EL, ER = mp.eig(M.T, left = True, right = True)
-    E, EL, ER = mp.eig_sort(E, EL, ER)   # time_series = np.arange(0, dt, ddt) + dt
+    UR = ER**-1
+    # E, EL, ER = mp.eig_sort(E, EL, ER)   # time_series = np.arange(0, dt, ddt) + dt
+    # print(mp.nstr(EL*ER, n=3))
     times = range(ddt, dt+ddt, ddt)
     # print(E)
     intermediate_populations = []
     # print(np.exp(time*np.diag(e)))
     # E = np.real(np.dot(np.dot(U, np.diag(R)), Uinv))
     for i in range(len(times)):
-        # print(mp.diag(R[i]))
         R = [mp.exp(E[j]*times[i]) for j in range(len(E))]
-        A = ER*mp.diag(R)*EL*p
-        print(R)
+        # R = [mp.exp(E[j]*0) for j in range(len(E))]
+        A = ER*mp.diag(R)*UR*p
+        # print(R)
         intermediate_populations.append(np.array((A.T).apply(mp.re).tolist()[0], dtype=float))
-    print(intermediate_populations[-1])
+    # print(p)
+    # print(intermediate_populations[-1])
     # intermediate_populations = [np.array(((ER*mp.diag(R)*EL*p).T).apply(mp.re).tolist()[0], dtype=float) for t in times]
     # print(intermediate_populations)
     return intermediate_populations

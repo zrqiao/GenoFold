@@ -21,7 +21,8 @@ k0 = 1
 R = 1.9858775e-3  # G in kcal/mol
 rate_cutoff = 1e-20  # minimum allowed rate constant
 subopt_gap=0.99
-mp.dps = 100
+mp.mp.prec = 333
+mp.mp.dps = 50
 ##
 
 
@@ -64,50 +65,75 @@ def Propagate(M, p, time):
 
 def Propagate_stationary(M, p, dt, ddt=1):
 
-    E, EL, ER = mp.eig(M, left = True, right = True)
+    E, EL, ER = mp.eig(M.T, left = True, right = True)
     E, EL, ER = mp.eig_sort(E, EL, ER)
-    times = mp.arange(dt, dt+ddt, ddt)
+    times = range(ddt, dt+ddt, ddt)
     R = [0]*(len(E)-1)
     R.append(1)
+    # print(M.T)
+    print(E)
+    intermediate_populations = []
     # print(np.exp(time*np.diag(e)))
     # E = np.real(np.dot(np.dot(U, np.diag(R)), Uinv))
-    intermediate_populations = [ER*mp.diag(R)*EL*p.apply(mp.re).tolist() for t in times]
-    # print(E)
+    for i in range(len(times)):
+        # print(mp.diag(R[i]))
+        A = ER*mp.diag(R)*EL*p
+        intermediate_populations.append(np.array((A.T).apply(mp.re).tolist()[0], dtype=float))
+    print(intermediate_populations)
+    # intermediate_populations = [np.array(((ER*mp.diag(R)*EL*p).T).apply(mp.re).tolist()[0], dtype=float) for t in times]
+    # print(intermediate_populations)
     return intermediate_populations
 
 
 def Propagate_trunc2(M, p, dt, ddt=1):
 
-    E, EL, ER = mp.eig(M, left = True, right = True)
+    E, EL, ER = mp.eig(M.T, left = True, right = True)
     E, EL, ER = mp.eig_sort(E, EL, ER)
-    times = mp.arange(dt, dt+ddt, ddt)
+    times = np.arange(0, dt, ddt)+dt
     N = int(dt/ddt)
     if len(p) == 1:
         intermediate_populations = [p for i in range(N)]
         return intermediate_populations
     else:
         R = [[0 for i in range(len(p))] for j in range(N)]
-        R[-1] = [1 for i in range(len(p))]
-        R[-2] = [mp.exp(E[-2]*t) for t in times]
-        intermediate_populations = [ER*mp.diag(R[:, i])*EL*p.apply(mp.re).tolist() for i in range(N)]
+        for i in range(N) : 
+            R[i][-2] = mp.exp(E[-2]*times[i])
+            R[i][-1] = 1
+        # print(M)
+        # print(ER)
+        print(E)
+        # print(R)
+        # print(EL)
+        # print(p)
+        # print(ER*mp.diag(R[0])*EL*p)
+        intermediate_populations = []
+        for i in range(N):
+            # print(mp.diag(R[i]))
+            A = ER*mp.diag(R[i])*EL*p
+            intermediate_populations.append(np.array((A.T).apply(mp.re).tolist()[0], dtype=float))
+        print(intermediate_populations)
         return intermediate_populations
 
 
-def Propagate(M, p, dt, ddt=1):
-    # time_series = np.arange(0, dt, ddt) + dt
-    if dt > ddt:
-        # intermediate_populations = expm_multiply(M.transpose(), p, ddt, dt, dt/ddt, True)
-        # intermediate_populations = np.zeros((dt/ddt, len(p), len(p)))
-        times = mp.arange(dt, dt+ddt, ddt)
-        intermediate_populations = [mp.expm(t*M.T) * p for t in times]
-    elif dt == ddt: 
-        intermediate_populations = [mp.expm(dt*M.T) * p]
-    else:
-        print('Invalid differential time step')
-        return False
-    # print(time.time()-time_1)
+def Propagate(M, p, dt, ddt=1): 
+    E, EL, ER = mp.eig(M.T, left = True, right = True)
+    E, EL, ER = mp.eig_sort(E, EL, ER)   # time_series = np.arange(0, dt, ddt) + dt
+    times = range(ddt, dt+ddt, ddt)
+    # print(E)
+    intermediate_populations = []
+    # print(np.exp(time*np.diag(e)))
+    # E = np.real(np.dot(np.dot(U, np.diag(R)), Uinv))
+    for i in range(len(times)):
+        # print(mp.diag(R[i]))
+        R = [mp.exp(E[j]*times[i]) for j in range(len(E))]
+        A = ER*mp.diag(R)*EL*p
+        print(R)
+        intermediate_populations.append(np.array((A.T).apply(mp.re).tolist()[0], dtype=float))
+    print(intermediate_populations[-1])
+    # intermediate_populations = [np.array(((ER*mp.diag(R)*EL*p).T).apply(mp.re).tolist()[0], dtype=float) for t in times]
+    # print(intermediate_populations)
     return intermediate_populations
-    # return np.dot(p, expm(time*M))
+
 
 
 def similar(a, b):
@@ -115,7 +141,9 @@ def similar(a, b):
 
 
 def rate(dG, k):
-    return k*mp.exp(-dG/(R* (273.15+Temperature)))
+    rate = k*mp.exp(-(dG/(R*(273.15+Temperature))))
+    # print(str(rate))
+    return rate
     # return k
 
 
@@ -560,7 +588,7 @@ class SpeciesPool(object):
                 rate_matrix[i][i] = -np.sum(rate_matrix[i])
             '''
             # Master Equation
-            intermediate_population_arrays = Propagate_trunc2(rate_matrix, population_array, dt, ddt=ddt)
+            intermediate_population_arrays = Propagate(rate_matrix, population_array, dt, ddt=ddt)
             # TODO: This is only for perturbation!
         population_array = intermediate_population_arrays[-1]
         # Remapping

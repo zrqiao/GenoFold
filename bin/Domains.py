@@ -22,7 +22,7 @@ R = 1.9858775e-3  # G in kcal/mol
 rate_cutoff = 1e-20  # minimum allowed rate constant
 subopt_gap=0.99
 mp.mp.prec = 333
-mp.mp.dps = 60
+mp.mp.dps = 100
 mp.mp.pretty = True
 ##
 
@@ -65,6 +65,7 @@ def Propagate(M, p, time):
 
 
 def Propagate_stationary(M, p, dt, ddt=1):
+    syst1=time.time()
 
     E, EL, ER = mp.eig(M.T, left = True, right = True)
     E, EL, ER = mp.eig_sort(E, EL, ER)
@@ -75,13 +76,15 @@ def Propagate_stationary(M, p, dt, ddt=1):
     # print(M.T)
     # print(E)
     intermediate_populations = []
+    print(time.time()-syst1)
     # print(np.exp(time*np.diag(e)))
     # E = np.real(np.dot(np.dot(U, np.diag(R)), Uinv))
     for i in range(len(times)):
         # print(mp.diag(R[i]))
         A = ER*mp.diag(R)*UR*p
         intermediate_populations.append(np.array((A.T).apply(mp.re).tolist()[0], dtype=float))
-    print(intermediate_populations)
+    # print(intermediate_populations)
+    print(time.time()-syst1)
     # intermediate_populations = [np.array(((ER*mp.diag(R)*EL*p).T).apply(mp.re).tolist()[0], dtype=float) for t in times]
     # print(intermediate_populations)
     return intermediate_populations
@@ -117,7 +120,7 @@ def Propagate_trunc2(M, p, dt, ddt=1):
         return intermediate_populations
 
 
-def Propagate(M, p, dt, ddt=1): 
+def Propagate(M, p, dt, ddt=1):
     E, EL, ER = mp.eig(M.T, left = True, right = True)
     UR = ER**-1
     # E, EL, ER = mp.eig_sort(E, EL, ER)   # time_series = np.arange(0, dt, ddt) + dt

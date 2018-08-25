@@ -6,6 +6,7 @@ import matplotlib as mpl
 import argparse, math, random, gzip, pickle, types
 from collections import defaultdict
 import os
+import adjustText
 # Change following routines for other environments:
 L_init = 10  # Initiation unit
 dL = 10  # elongation unit (also means CG unit)
@@ -13,11 +14,24 @@ transcription_time = 0.1
 dt = transcription_time * dL  # Folding time for each elongation step (0.1 s/nt)
 population_size_limit = 100  # maximum type of strands in the pool
 MULTI_PROCESS = 32
-km_start = 1
-km_end = 1
+km_start = 0
+km_end = 48
 km_interval = 3
 SD_start, SD_end = 21, 28
 equi_p_unbound = [0.0414220, 0.0612670, 0.0839040, 0.9764600, 0.9300200, 0.0861740, 0.2976000]
+NUM_COLORS = 12
+
+# These are the "Tableau 20" colors as RGB.
+tableau20 = [(31, 119, 180), (174, 199, 232), (255, 127, 14), (255, 187, 120),
+             (44, 160, 44), (152, 223, 138), (214, 39, 40), (255, 152, 150),
+             (148, 103, 189), (197, 176, 213), (140, 86, 75), (196, 156, 148),
+             (227, 119, 194), (247, 182, 210), (127, 127, 127), (199, 199, 199),
+             (188, 189, 34), (219, 219, 141), (23, 190, 207), (158, 218, 229)]
+
+# Scale the RGB values to the [0, 1] range, which is the format matplotlib accepts.
+for i in range(len(tableau20)):
+    r, g, b = tableau20[i]
+    tableau20[i] = (r / 255., g / 255., b / 255.)
 
 
 def similar(a, b):
@@ -46,7 +60,7 @@ def localss_population_processing(input_prefix):
             local_output.write(' '.join(map(str, local_structure_collection_data[local_ss].values())) + '\n')
 
 
-def data_ploting(ax_punbound, input_prefix, label, start_index, end_index):
+def data_ploting(ax_punbound, input_prefix, label, start_index, end_index, color_rank):
     data_punbound = defaultdict(np.float)
     if not os.path.exists(input_prefix):
         os.makedirs(input_prefix)
@@ -61,18 +75,20 @@ def data_ploting(ax_punbound, input_prefix, label, start_index, end_index):
                 time = ss[1]
             else:
                 # print(ss)
-                if len(ss[0]) >= SD_end:
+                if len(ss[0]) >= end_index:
                     target_ss = ss[0][start_index:end_index]
-                    data_punbound[time] += ss[1] * target_ss.count('.') / (end_index - start_index)
+                    data_punbound[time] += ss[1] / (end_index - start_index) * target_ss.count('.')
         data_plot = np.array([list(data_punbound.keys()), list(data_punbound.values())])
 
-    ax_punbound.plot(data_plot[0], data_plot[1], label=label)
+    ax_punbound.plot(data_plot[0], data_plot[1], color=tableau20[color_rank])
+    tt = plt.text(520, data_plot[1][-1], label, fontsize=14, color=tableau20[color_rank])
     for d in data_punbound.items():
         f.write(f'{d[0]}  {d[1]}\n')
     f.close()
+    return tt
 
 
-def data_ploting_equ(ax_punbound, input_prefix, label, start_index, end_index):
+def data_ploting_equ(ax_punbound, input_prefix, label, start_index, end_index, color_rank):
     data_punbound = defaultdict(np.float)
     if not os.path.exists(input_prefix):
         os.makedirs(input_prefix)
@@ -83,29 +99,31 @@ def data_ploting_equ(ax_punbound, input_prefix, label, start_index, end_index):
         pairs_data = [list(map(np.float, x.split())) for x in folding_input.readlines()]
         for dat in pairs_data:
             if len(dat) >= end_index:
-                time = len(dat)-1  # NOTE: should be len(dat) for later version
+                time = len(dat)  # NOTE: should be len(dat) for later version
                 data_punbound[time] += np.sum(dat[start_index:end_index]) / (end_index - start_index)
         data_plot = np.array([list(data_punbound.keys()), list(data_punbound.values())])
 
-    ax_punbound.plot(data_plot[0], data_plot[1], label=label)
+    ax_punbound.plot(data_plot[0], data_plot[1], color=tableau20[color_rank])
+    tt = plt.text(520, data_plot[1][-1], label, fontsize=14, color=tableau20[color_rank])
     for d in data_punbound.items():
         f.write(f'{d[0]}  {d[1]}\n')
     f.close()
+    return tt
 
 
 if __name__ == '__main__':
 
     # plt.style.use('bmh')
     # mpl.rcParams['axes.color_cycle'] = colors
-    mpl.rcParams['axes.titlesize'] = 20
-    mpl.rcParams['axes.titleweight'] = 20
+    mpl.rcParams['axes.titlesize'] = 17
+    mpl.rcParams['axes.titleweight'] = 10
     params = {
-        'axes.labelsize': 15,
-        'legend.fontsize': 12.5,
-        'xtick.labelsize': 15,
-        'ytick.labelsize': 15,
+        'axes.labelsize': 20,
+        'legend.fontsize': 14,
+        'xtick.labelsize': 14,
+        'ytick.labelsize': 14,
         'text.usetex': False,
-        'figure.figsize': [15, 9]
+        'figure.figsize': [12, 9]
     }
     mpl.rcParams.update(params)
     parser = argparse.ArgumentParser()
@@ -121,27 +139,36 @@ if __name__ == '__main__':
     # Start IO
     fig = plt.figure()
     fig.add_axes()
-    NUM_COLORS = 7
+
     cm = plt.get_cmap('rainbow')
     ax_punbound = fig.add_subplot(111)
     ax_punbound.set_color_cycle([cm(1. * i / NUM_COLORS) for i in range(NUM_COLORS)])
 
     # ax_localpop.set_title(f'Average p_unbound for base[-9](G) {PATH}')
-    ax_punbound.set_title(f'{PATH}: '+r'Average SD $p_{unbound}$')
-    ax_punbound.set_xlabel('Transcription time')
-    ax_punbound.set_ylabel(r'$p_{unbound}$')
-    ax_punbound.grid(axis='y', color="0.9", linestyle='-', linewidth=1)
+    plt.text(270, 1.08, f'{PATH}: '+r'Average SD $p_{unbound}$', fontsize=17, ha="center")
+    ax_punbound.spines["top"].set_visible(False)
+    ax_punbound.spines["bottom"].set_visible(False)
+    ax_punbound.spines["right"].set_visible(False)
+    ax_punbound.spines["left"].set_visible(False)
+    ax_punbound.get_xaxis().tick_bottom()
+    ax_punbound.get_yaxis().tick_left()
+    plt.text(270, -0.08, 'Transcription time', fontsize=14, ha="center", color="0.3")
+    ax_punbound.set_ylabel(r'$p_{unbound}$', color="0.3")
+    ax_punbound.grid(axis='y', color="0.9", linestyle='--', linewidth=1)
     # ax_localpop.set_yscale('log')
     # ax_localpop.set_xscale('log')
-    ax_punbound.set_ylim(0, 1.05)
-
+    ax_punbound.set_xlim(20, 520)
+    ax_punbound.set_ylim(0, 1.0)
+    color_rank = 0
+    labels = []
     for e_k in range(km_start, km_end, km_interval):
         k = 1*10**e_k
         print('k= %.2g'%k)
         prefix = PATH + '/k' + '%.2g' % k
         label = r'$k/k_T$ = ' + '%.2g' % k
         localss_population_processing(prefix)
-        data_ploting(ax_punbound, prefix, label, SD_start, SD_end)
+        labels.append(data_ploting(ax_punbound, prefix, label, SD_start, SD_end, color_rank))
+        color_rank += 1
 
     print('k= inf')
     data = defaultdict(np.float)
@@ -149,54 +176,71 @@ if __name__ == '__main__':
     prefix = PATH + '/k' + 'inf'
     label = r'$k/k_T$ = ' + 'inf'
     localss_population_processing(prefix)
-    data_ploting(ax_punbound, prefix, label, SD_start, SD_end)
+    color_rank += 1
+    labels.append(data_ploting(ax_punbound, prefix, label, SD_start, SD_end, color_rank))
 
     prefix = PATH + '/equilibrium'  # Need to be copied here
     label = 'Equilibrium'
-    data_ploting_equ(ax_punbound, prefix, label, SD_start, SD_end)  # Another format
-    ax_punbound.legend(loc='best')
+    labels.append(data_ploting_equ(ax_punbound, prefix, label, SD_start, SD_end, color_rank+1))  # Another format
+    # ax_punbound.legend(loc='best')
+    # adjustText.adjust_text(labels, arrowprops=dict(arrowstyle='-', color='0.7'))
+    plt.tick_params(axis="both", which="both", bottom="off", top="off",
+                    labelbottom="on", left="off", right="off", labelleft="on")
     # fig.tight_layout()
-    plt.show()
+    fig.savefig(PATH + f'/p_unbound_SD_k_tuning.png',  bbox_inches="tight")
+    # plt.show()
 
-    fig.savefig(PATH + f'/p_unbound_SD_k_tuning.eps')
-
-    for base_position in range(0, 7):  # note: Relative to SD_start
-        base_gene_position = base_position-14
+    for base_position in range(0, SD_end-SD_start):  # note: Relative to SD_start
+        base_gene_position = base_position+SD_start-35
         fig = plt.figure()
         fig.add_axes()
+
         ax_punbound = fig.add_subplot(111)
         ax_punbound.set_color_cycle([cm(1. * i / NUM_COLORS) for i in range(NUM_COLORS)])
-        # ax_localpop.set_title(f'Average p_unbound for base[-9](G) {clargs.sequence}')
-        ax_punbound.set_title(f'{PATH}: base [{base_gene_position}] '+r'$p_{unbound}$:')
-        # ax_punbound.set_title(f'{clargs.sequence} base [{base_position}] '+r'$p_{unbound}$:')
-        ax_punbound.set_xlabel('Transcription time')
-        ax_punbound.set_ylabel(r'$p_{unbound}$')
-        # ax_punbound.set_yscale('log')
-        # ax_localpop.set_xscale('log')
-        ax_punbound.set_ylim(0, 1.05)
-        ax_punbound.grid(axis='y', color="0.9", linestyle='-', linewidth=1)
 
+        # ax_localpop.set_title(f'Average p_unbound for base[-9](G) {PATH}')
+        plt.text(270, 1.08, f'{PATH}: base [{base_gene_position}] '+r'$p_{unbound}$', fontsize=17, ha="center")
+        ax_punbound.spines["top"].set_visible(False)
+        ax_punbound.spines["bottom"].set_visible(False)
+        ax_punbound.spines["right"].set_visible(False)
+        ax_punbound.spines["left"].set_visible(False)
+        ax_punbound.get_xaxis().tick_bottom()
+        ax_punbound.get_yaxis().tick_left()
+        plt.text(270, -0.08, 'Transcription time', fontsize=14, ha="center", color="0.3")
+        ax_punbound.set_ylabel(r'$p_{unbound}$', color="0.3")
+        ax_punbound.grid(axis='y', color="0.9", linestyle='--', linewidth=1)
+        # ax_localpop.set_yscale('log')
+        # ax_localpop.set_xscale('log')
+        ax_punbound.set_xlim(20, 520)
+        ax_punbound.set_ylim(0, 1.0)
+        color_rank = 0
+        labels = []
         for e_k in range(km_start, km_end, km_interval):
             k = 1 * 10 ** e_k
             print('k= %.2g' % k)
             prefix = PATH + '/k' + '%.2g' % k
             label = r'$k/k_T$ = ' + '%.2g' % k
-            data_ploting(ax_punbound, prefix, label, SD_start+base_position, SD_start+base_position+1)
+            localss_population_processing(prefix)
+            labels.append(data_ploting(ax_punbound, prefix, label, SD_start+base_position, SD_start+base_position+1, color_rank))
+            color_rank += 1
 
         print('k= inf')
         data = defaultdict(np.float)
         local_structure_collection_data = defaultdict(lambda: defaultdict(np.float))
         prefix = PATH + '/k' + 'inf'
         label = r'$k/k_T$ = ' + 'inf'
-        data_ploting(ax_punbound, prefix, label, SD_start+base_position, SD_start+base_position+1)
+        localss_population_processing(prefix)
+        color_rank += 1
+        labels.append(data_ploting(ax_punbound, prefix, label, SD_start+base_position, SD_start+base_position+1, color_rank))
 
-        prefix = PATH + '/equilibrium'
+        prefix = PATH + '/equilibrium'  # Need to be copied here
         label = 'Equilibrium'
-        data_ploting_equ(ax_punbound, prefix, label, SD_start+base_position, SD_start+base_position+1)
+        labels.append(data_ploting_equ(ax_punbound, prefix, label, SD_start+base_position, SD_start+base_position+1, color_rank + 1))  # Another format
+        # ax_punbound.legend(loc='best')
+        # adjustText.adjust_text(labels, arrowprops=dict(arrowstyle='-', color='0.7'))
+        plt.tick_params(axis="both", which="both", bottom="off", top="off",
+                        labelbottom="on", left="off", right="off", labelleft="on")
 
-        ax_punbound.legend(loc='best')
-        # fig.tight_layout()
-        plt.show()
-
-        fig.savefig(PATH + f'/p_unbound_base[{base_gene_position}]_k_tuning_linear.eps')
+        fig.savefig(PATH + f'/p_unbound_base[{base_gene_position}]_k_tuning_linear.png',  bbox_inches="tight")
+        # plt.show()
 exit()

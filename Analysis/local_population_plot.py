@@ -16,6 +16,9 @@ dt = transcription_time * dL  # Folding time for each elongation step (0.1 s/nt)
 population_size_limit = 100  # maximum type of strands in the pool
 MULTI_PROCESS = 32
 SD_start, SD_end = 21, 28
+km_start = 3
+km_end = 48
+km_interval = 3
 equi_p_unbound = [0.0414220, 0.0612670, 0.0839040, 0.9764600, 0.9300200, 0.0861740, 0.2976000]
 
 
@@ -53,14 +56,14 @@ def local_plot(ax_localpop, local_input_path, label):
 if __name__ == '__main__':
 
     # plt.style.use('ggplot')
-    fig = plt.figure(figsize=(15, 15))
+    fig = plt.figure(figsize=(25, 20))
     # colors = [plt.cm.jet(lt) for lt in range(0, 8)]
     fig.add_axes()
     # mpl.rcParams['axes.color_cycle'] = colors
     mpl.rcParams['axes.titlesize'] = 10
     mpl.rcParams['axes.titleweight'] = 10
 
-    NUM_COLORS = 25
+    NUM_COLORS = 22
     cm = plt.get_cmap('rainbow_r')
 
     parser = argparse.ArgumentParser()
@@ -73,15 +76,15 @@ if __name__ == '__main__':
     with open(clargs.sequence + '.in', 'r') as sequence_file:
         full_sequence = sequence_file.readline().rstrip('\n')
 
-    for e_k in range(1, 15, 3):
-        ax_localpop = fig.add_subplot(3, 2, int(e_k/3)+1)
+    for e_k in range(km_start, km_end, km_interval):
+        ax_localpop = fig.add_subplot(4, 4, int((e_k-km_start)/km_interval)+1)
         ax_localpop.set_color_cycle([cm(1. * i / NUM_COLORS) for i in range(NUM_COLORS)])
         k = 1 * 10 ** e_k
         local_input_path = PATH + '/k' + '%.2g' % k + '/local_population'
         label = '%.2g' % k
         local_plot(ax_localpop, local_input_path, label)
 
-    ax_localpop = fig.add_subplot(3, 2, 6)
+    ax_localpop = fig.add_subplot(4, 4, 16)
     ax_localpop.set_color_cycle([cm(1. * i / NUM_COLORS) for i in range(NUM_COLORS)])
 
     local_input_path = PATH + '/kinf' + '/local_population'

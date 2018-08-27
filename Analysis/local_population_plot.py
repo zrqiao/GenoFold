@@ -16,9 +16,9 @@ dt = transcription_time * dL  # Folding time for each elongation step (0.1 s/nt)
 population_size_limit = 100  # maximum type of strands in the pool
 MULTI_PROCESS = 32
 SD_start, SD_end = 21, 28
-km_start = 3
-km_end = 48
-km_interval = 3
+km_start = 16
+km_end = 37
+km_interval = 1
 equi_p_unbound = [0.0414220, 0.0612670, 0.0839040, 0.9764600, 0.9300200, 0.0861740, 0.2976000]
 
 
@@ -31,9 +31,9 @@ def local_plot(ax_localpop, local_input_path, label):
         # ax_localpop.set_color_cycle([cm(1. * i / NUM_COLORS) for i in range(NUM_COLORS)])
         # ax_localpop.set_title(f'Average p_unbound for base[-9](G) {clargs.sequence}')
         ax_localpop.set_title(f'SD Local folding population $k/k_T$ = {label}')
-        ax_localpop.set_xlabel('Transcription time')
+        ax_localpop.set_xlabel('Transcript length')
         ax_localpop.set_ylabel('Population fraction')
-        ax_localpop.set_xlim(28, 515)
+        ax_localpop.set_xlim(28, 400)
         print(f'SD Local folding population $k/k_T$ = {label}')
         data_raw = local_input.readlines()
         ss_num = int(len(data_raw) / 3)
@@ -56,11 +56,11 @@ def local_plot(ax_localpop, local_input_path, label):
 if __name__ == '__main__':
 
     # plt.style.use('ggplot')
-    fig = plt.figure(figsize=(25, 20))
+    fig = plt.figure(figsize=(28, 24))
     # colors = [plt.cm.jet(lt) for lt in range(0, 8)]
     fig.add_axes()
     # mpl.rcParams['axes.color_cycle'] = colors
-    mpl.rcParams['axes.titlesize'] = 10
+    mpl.rcParams['axes.titlesize'] = 17
     mpl.rcParams['axes.titleweight'] = 10
 
     NUM_COLORS = 22
@@ -77,14 +77,14 @@ if __name__ == '__main__':
         full_sequence = sequence_file.readline().rstrip('\n')
 
     for e_k in range(km_start, km_end, km_interval):
-        ax_localpop = fig.add_subplot(4, 4, int((e_k-km_start)/km_interval)+1)
+        ax_localpop = fig.add_subplot(5, 5, int((e_k-km_start)/km_interval)+1)
         ax_localpop.set_color_cycle([cm(1. * i / NUM_COLORS) for i in range(NUM_COLORS)])
         k = 1 * 10 ** e_k
         local_input_path = PATH + '/k' + '%.2g' % k + '/local_population'
         label = '%.2g' % k
         local_plot(ax_localpop, local_input_path, label)
 
-    ax_localpop = fig.add_subplot(4, 4, 16)
+    ax_localpop = fig.add_subplot(5, 5, 25)
     ax_localpop.set_color_cycle([cm(1. * i / NUM_COLORS) for i in range(NUM_COLORS)])
 
     local_input_path = PATH + '/kinf' + '/local_population'

@@ -8,15 +8,15 @@ from collections import defaultdict
 import os
 import adjustText
 # Change following routines for other environments:
-L_init = 10  # Initiation unit
-dL = 10  # elongation unit (also means CG unit)
-transcription_time = 0.1
+L_init = 5  # Initiation unit
+dL = 5  # elongation unit (also means CG unit)
+transcription_time = 1
 dt = transcription_time * dL  # Folding time for each elongation step (0.1 s/nt)
 population_size_limit = 100  # maximum type of strands in the pool
 MULTI_PROCESS = 32
-km_start = 0
-km_end = 48
-km_interval = 3
+km_start = 13
+km_end = 36
+km_interval = 1
 SD_start, SD_end = 21, 28
 equi_p_unbound = [0.0414220, 0.0612670, 0.0839040, 0.9764600, 0.9300200, 0.0861740, 0.2976000]
 NUM_COLORS = 12
@@ -80,8 +80,8 @@ def data_ploting(ax_punbound, input_prefix, label, start_index, end_index, color
                     data_punbound[time] += ss[1] / (end_index - start_index) * target_ss.count('.')
         data_plot = np.array([list(data_punbound.keys()), list(data_punbound.values())])
 
-    ax_punbound.plot(data_plot[0], data_plot[1], color=tableau20[color_rank])
-    tt = plt.text(520, data_plot[1][-1], label, fontsize=14, color=tableau20[color_rank])
+    ax_punbound.plot(data_plot[0], data_plot[1], color=tableau20[color_rank%20])
+    tt = plt.text(520, data_plot[1][-1], label, fontsize=14, color=tableau20[color_rank%20])
     for d in data_punbound.items():
         f.write(f'{d[0]}  {d[1]}\n')
     f.close()
@@ -103,8 +103,8 @@ def data_ploting_equ(ax_punbound, input_prefix, label, start_index, end_index, c
                 data_punbound[time] += np.sum(dat[start_index:end_index]) / (end_index - start_index)
         data_plot = np.array([list(data_punbound.keys()), list(data_punbound.values())])
 
-    ax_punbound.plot(data_plot[0], data_plot[1], color=tableau20[color_rank])
-    tt = plt.text(520, data_plot[1][-1], label, fontsize=14, color=tableau20[color_rank])
+    ax_punbound.plot(data_plot[0], data_plot[1], color=tableau20[color_rank%20])
+    tt = plt.text(520, data_plot[1][-1], label, fontsize=14, color=tableau20[color_rank%20])
     for d in data_punbound.items():
         f.write(f'{d[0]}  {d[1]}\n')
     f.close()

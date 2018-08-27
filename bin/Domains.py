@@ -22,7 +22,7 @@ R = 1.9858775e-3  # G in kcal/mol
 rate_cutoff = 1e-20  # minimum allowed rate constant
 subopt_gap=0.99
 mp.mp.prec = 333
-mp.mp.dps = 100
+mp.mp.dps = 75
 mp.mp.pretty = True
 ##
 
@@ -142,17 +142,20 @@ def Propagate(M, p, dt, ddt=1):
     # print(intermediate_populations)
     return intermediate_populations
 
-def Propagate_pade(M, p, dt, ddt=1):
-    times = range(ddt, dt+ddt, ddt)
+def Propagate_sp(M, p, dt, ddt=1):
+    times = np.arange(ddt, dt+ddt, ddt)
     intermediate_populations = []
+    M = np.array(M.tolist(), dtype='float').transpose()
+    # print(M)
+    p = (np.array(p.tolist(), dtype='float').transpose())[0]
     # print(np.exp(time*np.diag(e)))
     # E = np.real(np.dot(np.dot(U, np.diag(R)), Uinv))
     for i in range(len(times)):
-        A = mp.expm(M.T*times[i])*p
-        # print(R)
-        intermediate_populations.append(np.array((A.T).apply(mp.re).tolist()[0], dtype=float))
-    # print(p)
-    # print(intermediate_populations[-1])
+        p = np.dot(expm(ddt*M), p)
+        # A = mp.expm(M.T*times[i], method='pade')*p
+        intermediate_populations.append(p)
+    # print(A)
+    print(intermediate_populations[-1])
     # intermediate_populations = [np.array(((ER*mp.diag(R)*EL*p).T).apply(mp.re).tolist()[0], dtype=float) for t in times]
     # print(intermediate_populations)
     return intermediate_populations
@@ -418,7 +421,8 @@ class Domain(object):
         if IFRa >= IFRb:
             diff = IFRa - IFRb
             if not diff:  # NOTE: cannot discern identical domains here
-                return other.IFR[0], other.IFR[-1]  # Global rearrangement
+                return False # NOTE: This is not correct for equilibrium calculation
+                # return other.IFR[0], other.IFR[-1]  # Global rearrangement
             for i in range(len(other.IFR)-1):
                 if max(diff) < other.IFR[i+1] and min(diff) > other.IFR[i]:
                     return other.IFR[i], other.IFR[i+1]  # Exact indices of rearrangement site
@@ -611,7 +615,7 @@ class SpeciesPool(object):
                 rate_matrix[i][i] = -np.sum(rate_matrix[i])
             '''
             # Master Equation
-            intermediate_population_arrays = Propagate_pade(rate_matrix, population_array, dt, ddt=ddt)
+            intermediate_population_arrays = Propagate(rate_matrix, population_array, dt, ddt=ddt)
             # TODO: Modify here!
         population_array = intermediate_population_arrays[-1]
         # Remapping

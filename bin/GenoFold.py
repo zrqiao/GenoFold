@@ -71,6 +71,7 @@ if __name__ == '__main__':
         active_species_pool.add_species(
             init_foldon, population=Domains.boltzmann_factor(init_foldon.get_G()) / init_pfunc)
     sequence_length = len(full_sequence)
+    sequence_length = 200 # NOTE: only for local contact mutants
     current_length = L_init
     active_species_pool.timestamp += dt
     step = 1
@@ -139,11 +140,11 @@ if __name__ == '__main__':
         # NOTE: population dynamics (master equation)
 
         log.write('Population evolution... \n')
+        log.write('Population size before selection: ' + str(active_species_pool.size)+'\n')
         log.flush()
         species_list, intermediate_population_arrays, time_array = \
             active_species_pool.evolution(all_pathways, dt, ddt, stationary=clargs.stationary)
         log.write('finished \n')
-        log.write('Population size before selection: ' + str(active_species_pool.size)+'\n')
         log.write('Population selection... \n')
         log.flush()
         active_species_pool.selection(population_size_limit)

@@ -14,10 +14,11 @@ transcription_time = 1
 dt = transcription_time * dL  # Folding time for each elongation step (0.1 s/nt)
 population_size_limit = 100  # maximum type of strands in the pool
 MULTI_PROCESS = 32
-km_start = 13
-km_end = 36
+km_start = 9
+km_end = 37
 km_interval = 1
 SD_start, SD_end = 21, 28
+k_pre = 1e11
 equi_p_unbound = [0.0414220, 0.0612670, 0.0839040, 0.9764600, 0.9300200, 0.0861740, 0.2976000]
 NUM_COLORS = 12
 
@@ -132,7 +133,7 @@ if __name__ == '__main__':
     # parser.add_argument('--k', type=np.float, default=1., \
     #                     help="pre exponential factor")
     clargs = parser.parse_args()
-    with open(clargs.sequence + '.in', 'r') as sequence_file:
+    with open('sequences/' + clargs.sequence + '.in', 'r') as sequence_file:
         full_sequence = sequence_file.readline().rstrip('\n')
 
     PATH = clargs.working_path
@@ -145,14 +146,14 @@ if __name__ == '__main__':
     ax_punbound.set_color_cycle([cm(1. * i / NUM_COLORS) for i in range(NUM_COLORS)])
 
     # ax_localpop.set_title(f'Average p_unbound for base[-9](G) {PATH}')
-    plt.text(270, 1.08, f'{PATH}: '+r'Average SD $p_{unbound}$', fontsize=17, ha="center")
+    plt.text(270, 1.08, f'{clargs.sequence}: '+r'Average SD $p_{unbound}$', fontsize=17, ha="center")
     ax_punbound.spines["top"].set_visible(False)
     ax_punbound.spines["bottom"].set_visible(False)
     ax_punbound.spines["right"].set_visible(False)
     ax_punbound.spines["left"].set_visible(False)
     ax_punbound.get_xaxis().tick_bottom()
     ax_punbound.get_yaxis().tick_left()
-    plt.text(270, -0.08, 'Transcription time', fontsize=14, ha="center", color="0.3")
+    plt.text(270, -0.08, 'Transcript length', fontsize=14, ha="center", color="0.3")
     ax_punbound.set_ylabel(r'$p_{unbound}$', color="0.3")
     ax_punbound.grid(axis='y', color="0.9", linestyle='--', linewidth=1)
     # ax_localpop.set_yscale('log')
@@ -163,18 +164,21 @@ if __name__ == '__main__':
     labels = []
     for e_k in range(km_start, km_end, km_interval):
         k = 1*10**e_k
-        print('k= %.2g'%k)
+        # print('k= %.2g'%k)
         prefix = PATH + '/k' + '%.2g' % k
-        label = r'$k/k_T$ = ' + '%.2g' % k
-        localss_population_processing(prefix)
-        labels.append(data_ploting(ax_punbound, prefix, label, SD_start, SD_end, color_rank))
-        color_rank += 1
-
+        label = r'$k_T$ = ' + '%.2g' % (k_pre/k) + r' nt/s'
+        try:
+            localss_population_processing(prefix)
+            labels.append(data_ploting(ax_punbound, prefix, label, SD_start, SD_end, color_rank))
+            color_rank += 1
+        except:
+            continue
+    '''
     print('k= inf')
     data = defaultdict(np.float)
     local_structure_collection_data = defaultdict(lambda: defaultdict(np.float))
     prefix = PATH + '/k' + 'inf'
-    label = r'$k/k_T$ = ' + 'inf'
+    label = r'$k_T/k_f$ = ' + '0' + r's^{-1}'
     localss_population_processing(prefix)
     color_rank += 1
     labels.append(data_ploting(ax_punbound, prefix, label, SD_start, SD_end, color_rank))
@@ -182,6 +186,7 @@ if __name__ == '__main__':
     prefix = PATH + '/equilibrium'  # Need to be copied here
     label = 'Equilibrium'
     labels.append(data_ploting_equ(ax_punbound, prefix, label, SD_start, SD_end, color_rank+1))  # Another format
+    '''
     # ax_punbound.legend(loc='best')
     # adjustText.adjust_text(labels, arrowprops=dict(arrowstyle='-', color='0.7'))
     plt.tick_params(axis="both", which="both", bottom="off", top="off",
@@ -206,7 +211,7 @@ if __name__ == '__main__':
         ax_punbound.spines["left"].set_visible(False)
         ax_punbound.get_xaxis().tick_bottom()
         ax_punbound.get_yaxis().tick_left()
-        plt.text(270, -0.08, 'Transcription time', fontsize=14, ha="center", color="0.3")
+        plt.text(270, -0.08, 'Transcript length', fontsize=14, ha="center", color="0.3")
         ax_punbound.set_ylabel(r'$p_{unbound}$', color="0.3")
         ax_punbound.grid(axis='y', color="0.9", linestyle='--', linewidth=1)
         # ax_localpop.set_yscale('log')
@@ -217,18 +222,21 @@ if __name__ == '__main__':
         labels = []
         for e_k in range(km_start, km_end, km_interval):
             k = 1 * 10 ** e_k
-            print('k= %.2g' % k)
+            # print('k= %.2g' % k)
             prefix = PATH + '/k' + '%.2g' % k
-            label = r'$k/k_T$ = ' + '%.2g' % k
-            localss_population_processing(prefix)
-            labels.append(data_ploting(ax_punbound, prefix, label, SD_start+base_position, SD_start+base_position+1, color_rank))
-            color_rank += 1
-
+            label = r'$k_T$ = ' + '%.2g' % (k_pre/k) + r' nt/s'
+            try:
+                localss_population_processing(prefix)
+                labels.append(data_ploting(ax_punbound, prefix, label, SD_start+base_position, SD_start+base_position+1, color_rank))
+                color_rank += 1
+            except:
+                continue
+        '''
         print('k= inf')
         data = defaultdict(np.float)
         local_structure_collection_data = defaultdict(lambda: defaultdict(np.float))
         prefix = PATH + '/k' + 'inf'
-        label = r'$k/k_T$ = ' + 'inf'
+        label = r'$k_T/k_f$ = ' + '0'
         localss_population_processing(prefix)
         color_rank += 1
         labels.append(data_ploting(ax_punbound, prefix, label, SD_start+base_position, SD_start+base_position+1, color_rank))
@@ -236,6 +244,7 @@ if __name__ == '__main__':
         prefix = PATH + '/equilibrium'  # Need to be copied here
         label = 'Equilibrium'
         labels.append(data_ploting_equ(ax_punbound, prefix, label, SD_start+base_position, SD_start+base_position+1, color_rank + 1))  # Another format
+        '''
         # ax_punbound.legend(loc='best')
         # adjustText.adjust_text(labels, arrowprops=dict(arrowstyle='-', color='0.7'))
         plt.tick_params(axis="both", which="both", bottom="off", top="off",

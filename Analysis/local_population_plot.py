@@ -34,20 +34,22 @@ def local_plot(ax_localpop, local_input_path, label):
         ax_localpop.set_title(f'$k_T$ = {label}')
         ax_localpop.set_xlabel('Transcript length')
         ax_localpop.set_ylabel('Population fraction')
-        ax_localpop.set_xlim(28, 200)
+        ax_localpop.set_xlim(0, 200)
         # print(f'SD Local folding population k_T = {label}')
         data_raw = local_input.readlines()
         ss_num = int(len(data_raw) / 3)
         sss=[]
-        prev_pop = np.zeros(int(520/ddt))
-        time_array = np.arange(0, 520, ddt)
+        prev_pop = np.zeros(570)
+        time_array = np.arange(-50, 520, ddt)
+        for i in time_array:
+            prev_pop[i+50] = 0
         for i in range(ss_num):
             ss = data_raw[i * 3].rstrip('\n')
             times_raw = list(map(np.float, data_raw[i * 3 + 1].split()))
             populations_raw = list(map(np.float, data_raw[i * 3 + 2].split()))
-            populations = np.zeros(int(520/ddt))
+            populations = np.zeros(570)
             for j in range(len(times_raw)):
-                populations[int(times_raw[j]/ddt)] = populations_raw[j]
+                populations[int(times_raw[j]/ddt)+50] = populations_raw[j]
 
             ax_localpop.bar(time_array, populations, bottom=prev_pop, label=ss, width=ddt)
             prev_pop += populations

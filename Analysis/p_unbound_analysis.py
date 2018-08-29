@@ -48,7 +48,7 @@ def localss_population_processing(input_prefix):
                for x in folding_input.readlines()]
         for ss in sss:
             if ss[0].startswith('#'):
-                time = ss[1]
+                time = ss[1] - 35
             else:
                 # print(ss)
                 if len(ss[0]) >= SD_end:
@@ -73,7 +73,7 @@ def data_ploting(ax_punbound, input_prefix, label, start_index, end_index, color
                for x in folding_input.readlines()]
         for ss in sss:
             if ss[0].startswith('#'):
-                time = ss[1]
+                time = ss[1] - 35
             else:
                 # print(ss)
                 if len(ss[0]) >= end_index:
@@ -158,7 +158,7 @@ if __name__ == '__main__':
     ax_punbound.grid(axis='y', color="0.9", linestyle='--', linewidth=1)
     # ax_localpop.set_yscale('log')
     # ax_localpop.set_xscale('log')
-    ax_punbound.set_xlim(20, 520)
+    ax_punbound.set_xlim(-10, 490)
     ax_punbound.set_ylim(0, 1.0)
     color_rank = 0
     labels = []

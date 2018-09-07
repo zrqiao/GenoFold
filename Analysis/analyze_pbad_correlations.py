@@ -138,7 +138,7 @@ if __name__ == '__main__':
             y_all += y
             R_mean, R_std, p = bootstrap_correlation(x, y, get_pearsonr)
             print("%s %d %6.3f %6.3f %g" % (d, len(y), R_mean, R_std, p))
-            Nterm_data[int((e_k-km_start)/km_interval)][int(e_time*4)+14] = R_mean
+            Nterm_data[int((e_k-km_start)/km_interval)][int(e_time*4)+28] = R_mean
 
 
 

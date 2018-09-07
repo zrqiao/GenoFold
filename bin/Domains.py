@@ -599,12 +599,11 @@ class SpeciesPool(object):
         # population_array = matlab.double(population_array)
 
         if stationary:
-            '''
             intermediate_population_arrays = \
                 preprocessing.normalize([[rate(species[0].get_G(), 1) for species in species_list]
                                         for t in time_array], norm='l1', axis=1)
-            '''
-            intermediate_population_arrays = Propagate_stationary(rate_matrix, population_array, dt, ddt=ddt)
+
+            # intermediate_population_arrays = Propagate_stationary(rate_matrix, population_array, dt, ddt=ddt)
         else:
             '''
             k_fastest = np.max(rate_matrix)

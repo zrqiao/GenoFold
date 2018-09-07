@@ -16,9 +16,10 @@ dt = transcription_time * dL  # Folding time for each elongation step (0.1 s/nt)
 population_size_limit = 100  # maximum type of strands in the pool
 MULTI_PROCESS = 32
 SD_start, SD_end = 21, 28
-km_start = 3
-km_end = 48
-km_interval = 3
+km_start = 1
+km_end = 5
+k_pre = 1e11
+km_interval = 1
 equi_p_unbound = [0.0414220, 0.0612670, 0.0839040, 0.9764600, 0.9300200, 0.0861740, 0.2976000]
 
 
@@ -30,23 +31,25 @@ def local_plot(ax_localpop, local_input_path, label):
     with open(local_input_path + '.dat', 'r+') as local_input:
         # ax_localpop.set_color_cycle([cm(1. * i / NUM_COLORS) for i in range(NUM_COLORS)])
         # ax_localpop.set_title(f'Average p_unbound for base[-9](G) {clargs.sequence}')
-        ax_localpop.set_title(f'SD Local folding population $k/k_T$ = {label}')
-        ax_localpop.set_xlabel('Transcription time')
+        ax_localpop.set_title(f'$k_T$ = {label}')
+        ax_localpop.set_xlabel('Transcript length')
         ax_localpop.set_ylabel('Population fraction')
-        ax_localpop.set_xlim(28, 515)
-        print(f'SD Local folding population $k/k_T$ = {label}')
+        ax_localpop.set_xlim(0, 200)
+        # print(f'SD Local folding population k_T = {label}')
         data_raw = local_input.readlines()
         ss_num = int(len(data_raw) / 3)
         sss=[]
-        prev_pop = np.zeros(int(520/ddt))
-        time_array = np.arange(0, 520, ddt)
+        prev_pop = np.zeros(570)
+        time_array = np.arange(-50, 520, ddt)
+        for i in time_array:
+            prev_pop[i+50] = 0
         for i in range(ss_num):
             ss = data_raw[i * 3].rstrip('\n')
             times_raw = list(map(np.float, data_raw[i * 3 + 1].split()))
             populations_raw = list(map(np.float, data_raw[i * 3 + 2].split()))
-            populations = np.zeros(int(520/ddt))
+            populations = np.zeros(570)
             for j in range(len(times_raw)):
-                populations[int(times_raw[j]/ddt)] = populations_raw[j]
+                populations[int(times_raw[j]/ddt)+50] = populations_raw[j]
 
             ax_localpop.bar(time_array, populations, bottom=prev_pop, label=ss, width=ddt)
             prev_pop += populations
@@ -56,14 +59,14 @@ def local_plot(ax_localpop, local_input_path, label):
 if __name__ == '__main__':
 
     # plt.style.use('ggplot')
-    fig = plt.figure(figsize=(25, 20))
+    fig = plt.figure(figsize=(12, 9))
     # colors = [plt.cm.jet(lt) for lt in range(0, 8)]
     fig.add_axes()
     # mpl.rcParams['axes.color_cycle'] = colors
     mpl.rcParams['axes.titlesize'] = 10
     mpl.rcParams['axes.titleweight'] = 10
 
-    NUM_COLORS = 22
+    NUM_COLORS = 24
     cm = plt.get_cmap('rainbow_r')
 
     parser = argparse.ArgumentParser()
@@ -73,26 +76,26 @@ if __name__ == '__main__':
     #                     help="pre exponential factor")
     clargs = parser.parse_args()
     PATH = clargs.working_path
-    with open(clargs.sequence + '.in', 'r') as sequence_file:
+    with open('sequences/'+clargs.sequence + '.in', 'r') as sequence_file:
         full_sequence = sequence_file.readline().rstrip('\n')
 
     for e_k in range(km_start, km_end, km_interval):
-        ax_localpop = fig.add_subplot(4, 4, int((e_k-km_start)/km_interval)+1)
+        ax_localpop = fig.add_subplot(2, 2, int((e_k-km_start)/km_interval)+1)
         ax_localpop.set_color_cycle([cm(1. * i / NUM_COLORS) for i in range(NUM_COLORS)])
         k = 1 * 10 ** e_k
         local_input_path = PATH + '/k' + '%.2g' % k + '/local_population'
-        label = '%.2g' % k
+        label = '%.2g' % (k_pre/k) + ' nt/s'
         local_plot(ax_localpop, local_input_path, label)
-
-    ax_localpop = fig.add_subplot(4, 4, 16)
+    '''
+    ax_localpop = fig.add_subplot(2, 3, 6)
     ax_localpop.set_color_cycle([cm(1. * i / NUM_COLORS) for i in range(NUM_COLORS)])
 
     local_input_path = PATH + '/kinf' + '/local_population'
     label = 'inf'
     local_plot(ax_localpop, local_input_path, label)
+    '''
+    fig.tight_layout()
+    # plt.show()
 
-    # fig.tight_layout()
-    plt.show()
-
-    fig.savefig(PATH + '/local_population_evolution_summary.eps')
+    fig.savefig(PATH + '/local_population_evolution_summary_bin1.png')
     exit()

@@ -50,16 +50,16 @@ if __name__ == '__main__':
     Ncterm = 3 * 20
     sequences = {}
     trans_rate_es = 11 - (np.arange(km_start, km_end, km_interval))
-    rbs_bind_time_es = list(np.arange(-7, 8, 0.25))
+    rbs_bind_time_es = list(np.arange(0, 200, 10))
     Nterm_data = np.zeros((len(trans_rate_es), len(rbs_bind_time_es)))
 
     # Calculate ddG
     for e_k in range(km_start, km_end, km_interval):
         k1 = 1 * 10 ** e_k
         k_T = (k_pre/k1)
-        for e_time in np.arange(-7, 8, 0.25):
-            rbs_time = 1 * 10 ** (e_time)
-            print(k_T, rbs_time)
+        for e_length in np.arange(0, 200, 10):
+            # rbs_time = 1 * 10 ** (e_time)
+            print(k_T, e_length)
             sequences = {}
             for gene in genes:
                 with open('20180110_all_' + gene + '_sequences.txt', 'r') as f:
@@ -104,7 +104,7 @@ if __name__ == '__main__':
                         mutant_pub_data = {}
                         for line in p_unbound_in:
                             length, pub = map(float, line.split())
-                            if int(rbs_time*k_T) == length:
+                            if int(e_length) == length:
                                 # mutant_pub_data[length] = pub
                                 data[d]['punbound'] = pub
                 except:
@@ -138,7 +138,7 @@ if __name__ == '__main__':
             y_all += y
             R_mean, R_std, p = bootstrap_correlation(x, y, get_pearsonr)
             print("%s %d %6.3f %6.3f %g" % (d, len(y), R_mean, R_std, p))
-            Nterm_data[int((e_k-km_start)/km_interval)][int(e_time*4)+14] = R_mean
+            Nterm_data[int((e_k-km_start)/km_interval)][int(e_length/10)] = R_mean
 
 
 
@@ -167,4 +167,4 @@ if __name__ == '__main__':
 
     ax.set_title("mRNA - p_unbound(effective RBS binding time) correlation")
     fig.tight_layout()
-    fig.savefig('Analysis/mRNA-p_unbound(effective RBS binding time)correlation_SD-refined_090718.png')
+    fig.savefig('Analysis/mRNA-p_unbound(effective RBS binding length)correlation_SD-refined_090718.png')

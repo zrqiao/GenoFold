@@ -22,7 +22,7 @@ R = 1.9858775e-3  # G in kcal/mol
 rate_cutoff = 1e-20  # minimum allowed rate constant
 subopt_gap=0.99
 mp.mp.prec = 333
-mp.mp.dps = 75
+mp.mp.dps = 50
 mp.mp.pretty = True
 ##
 

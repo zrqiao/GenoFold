@@ -75,7 +75,7 @@ if __name__ == '__main__':
     #   NOTE: Initiation [create active population]
     all_foldons = Domains.FoldonCollection()
     sequence_length = len(full_sequence)
-
+    sequence_length = 300
     foldons = open(clargs.path, 'w+')
     if clargs.mfe_only:
         for current_length in range(L_init, sequence_length+dL, dL):

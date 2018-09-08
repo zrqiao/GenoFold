@@ -590,9 +590,9 @@ class SpeciesPool(object):
             population_array[i] = species_list[i][1]
             for j in range(self.size):
                 if j == i: continue
-                rate = pathways.get_rate(species_list[i][0], species_list[j][0])
-                diag_i += rate
-                rate_matrix[i, j] = rate
+                rate_temp = pathways.get_rate(species_list[i][0], species_list[j][0])
+                diag_i += rate_temp
+                rate_matrix[i, j] = rate_temp
             rate_matrix[i, i] = -diag_i
 
         # rate_matrix = matlab.double(rate_matrix)
@@ -600,7 +600,7 @@ class SpeciesPool(object):
 
         if stationary:
             intermediate_population_arrays = \
-                preprocessing.normalize([[rate(species[0].get_G(), 1) for species in species_list]
+                preprocessing.normalize([[boltzmann_factor(species[0].get_G()) for species in species_list]
                                         for t in time_array], norm='l1', axis=1)
 
             # intermediate_population_arrays = Propagate_stationary(rate_matrix, population_array, dt, ddt=ddt)

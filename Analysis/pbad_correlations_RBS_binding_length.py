@@ -1,7 +1,7 @@
 import math
 import numpy as np
 import scipy.stats
-import seaborn as sns; sns.set()
+
 start_base = 21
 end_base = 28
 km_start = 4
@@ -12,6 +12,7 @@ km_interval = 1
 import matplotlib
 import matplotlib.pyplot as plt
 # sphinx_gallery_thumbnail_number = 2
+# import seaborn as sns; sns.set()
 
 def func(x, pos):
     return "{:.2f}".format(x).replace("0.", ".").replace("1.00", "")
@@ -55,18 +56,17 @@ def heatmap(data, row_labels, col_labels, ax=None,
     ax.set_yticklabels(row_labels)
 
     # Let the horizontal axes labeling appear on top.
-    ax.tick_params(top=False, bottom=True,
-                   labeltop=False, labelbottom=True)
+    #ax.tick_params(top=False, bottom=True, labeltop=False, labelbottom=True)
 
     # Rotate the tick labels and set their alignment.
     plt.setp(ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
 
     # Turn spines off and create white grid.
-    #for edge, spine in ax.spines.items():
-    #    spine.set_visible(False)
+    for edge, spine in ax.spines.items():
+        spine.set_visible(False)
 
-    # ax.set_xticks(np.arange(data.shape[1]))
-    # ax.set_yticks(np.arange(data.shape[0]))
+    # ax.set_xticks(np.arange(data.shape[1]), minor=True)
+    # ax.set_yticks(np.arange(data.shape[0]), minor=True)
     # ax.grid(which="minor", color="w", linestyle='-', linewidth=3)
     # ax.tick_params(which="minor", bottom=False, left=False)
 
@@ -74,7 +74,7 @@ def heatmap(data, row_labels, col_labels, ax=None,
 
 
 def annotate_heatmap(im, data=None, valfmt="{x:.2f}",
-                     textcolors=["black", "white"],
+                     textcolors=["white", "white"],
                      threshold=None, **textkw):
     """
     A function to annotate a heatmap.
@@ -99,6 +99,8 @@ def annotate_heatmap(im, data=None, valfmt="{x:.2f}",
     if not isinstance(data, (list, np.ndarray)):
         data = im.get_array()
 
+    print(data)
+
     # Normalize the threshold to the images color range.
     if threshold is not None:
         threshold = im.norm(threshold)
@@ -120,9 +122,10 @@ def annotate_heatmap(im, data=None, valfmt="{x:.2f}",
     texts = []
     for i in range(data.shape[0]):
         for j in range(data.shape[1]):
-            kw.update(color=textcolors[im.norm(data[i, j]) > threshold])
-            text = im.axes.text(j, i, valfmt(data[i, j], None), **kw)
-            texts.append(text)
+            if data[i, j] < 0 or data[i,j] > 0:
+                kw.update(color=textcolors[im.norm(data[i, j]) > threshold])
+                text = im.axes.text(j, i, valfmt(data[i, j], None), **kw)
+                texts.append(text)
 
     return texts
 
@@ -144,7 +147,7 @@ def bootstrap_correlation(x, y, fcn, n=1000):
     z = list(zip(x, y))
     p = 0
     R = np.zeros(n)
-    if len(x) <= 5:
+    if len(x) <= 6:
         return float('NaN'), float('NaN'), 1
     for i in range(n):
         s = [z[np.random.randint(len(z))] for j in range(len(z))]
@@ -260,7 +263,7 @@ if __name__ == '__main__':
             print("%s %d %6.3f %6.3f %g" % (d, len(y), R_mean, R_std, p))
             Nterm_data[int((e_k-km_start)/km_interval)][int(e_length/5)] = R_mean  # NOTE: Change here
 
-    for e_length in np.arange(0, 150, 5):
+    for e_length in l_rbss:
         # rbs_time = 1 * 10 ** (e_time)
         print('Equilibrium', e_length)
         sequences = {}
@@ -346,14 +349,15 @@ if __name__ == '__main__':
         Nterm_data[-1][int(e_length / 5)] = R_mean  # NOTE: Change here
 
     plt.style.use('seaborn')
+    plt.rcParams["axes.grid"] = False
     fig = plt.figure(figsize=(24, 9))
     # colors = [plt.cm.jet(lt) for lt in range(0, 8)]
     fig.add_axes()
     ax = fig.add_subplot(111)
-    # ax = ax.imshow(Nterm_data)
+    # im = ax.imshow(Nterm_data)
     im, _ = heatmap(Nterm_data, trans_rate_es, rbs_bind_time_es, ax=ax, vmin=-1, vmax=1,
-                    cmap="coolwarm", cbarlabel="correlation coeff.")
-    #texts = annotate_heatmap(im, valfmt=matplotlib.ticker.FuncFormatter(func))
+                    cmap="RdYlBu_r", cbarlabel="correlation coeff.")
+    texts = annotate_heatmap(im, valfmt=matplotlib.ticker.FuncFormatter(func))
 
     # We want to show all ticks...
     #ax.set_yticks(np.arange(len(trans_rate_es)))

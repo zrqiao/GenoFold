@@ -147,7 +147,7 @@ def bootstrap_correlation(x, y, fcn, n=1000):
     z = list(zip(x, y))
     p = 0
     R = np.zeros(n)
-    if len(x) <= 6:
+    if len(x) <= 10:
         return float('NaN'), float('NaN'), 1
     for i in range(n):
         s = [z[np.random.randint(len(z))] for j in range(len(z))]
@@ -171,7 +171,7 @@ if __name__ == '__main__':
         trans_rate_es.append(r'log(Transcription rate)=%g' % e_kt)
     trans_rate_es.append('Equilibrium')
     rbs_bind_time_es = []
-    l_rbss = list(np.arange(0, 150, 5))
+    l_rbss = list(np.arange(0, 105, 5))
     for l_rbs in l_rbss: # NOTE: to modify the axes, change here
         rbs_bind_time_es.append(r'Transcript Length=%g' % l_rbs)
     Nterm_data = np.zeros((len(trans_rate_es), len(rbs_bind_time_es)))
@@ -350,7 +350,7 @@ if __name__ == '__main__':
 
     plt.style.use('seaborn')
     plt.rcParams["axes.grid"] = False
-    fig = plt.figure(figsize=(24, 9))
+    fig = plt.figure(figsize=(12, 9))
     # colors = [plt.cm.jet(lt) for lt in range(0, 8)]
     fig.add_axes()
     ax = fig.add_subplot(111)
@@ -378,4 +378,4 @@ if __name__ == '__main__':
     '''
     ax.set_title("mRNA - "+r"p_unbound"+"(effective RBS binding length) correlation")
     fig.tight_layout()
-    fig.savefig('Analysis/mRNA-p_unbound(effective RBS binding length)correlation_SD_090718.png')
+    fig.savefig('Analysis/mRNA-p_unbound(effective RBS binding length)correlation_SD_090918.png')

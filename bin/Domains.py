@@ -142,6 +142,7 @@ def Propagate(M, p, dt, ddt=1):
     # print(intermediate_populations)
     return intermediate_populations
 
+
 def Propagate_sp(M, p, dt, ddt=1):
     times = np.arange(ddt, dt+ddt, ddt)
     intermediate_populations = []
@@ -151,15 +152,16 @@ def Propagate_sp(M, p, dt, ddt=1):
     # print(np.exp(time*np.diag(e)))
     # E = np.real(np.dot(np.dot(U, np.diag(R)), Uinv))
     for i in range(len(times)):
-        p = np.dot(expm(ddt*M), p)
+        p_temp = np.dot(expm(ddt*M), p)
+        p_norm = np.linalg.norm(p_temp)
+        p = p_temp/p_norm
         # A = mp.expm(M.T*times[i], method='pade')*p
         intermediate_populations.append(p)
     # print(A)
-    print(intermediate_populations[-1])
+    # print(intermediate_populations[-1])
     # intermediate_populations = [np.array(((ER*mp.diag(R)*EL*p).T).apply(mp.re).tolist()[0], dtype=float) for t in times]
     # print(intermediate_populations)
     return intermediate_populations
-
 
 
 def similar(a, b):
@@ -614,7 +616,7 @@ class SpeciesPool(object):
                 rate_matrix[i][i] = -np.sum(rate_matrix[i])
             '''
             # Master Equation
-            intermediate_population_arrays = Propagate(rate_matrix, population_array, dt, ddt=ddt)
+            intermediate_population_arrays = Propagate_sp(rate_matrix, population_array, dt, ddt=ddt)
             # TODO: Modify here!
         population_array = intermediate_population_arrays[-1]
         # Remapping

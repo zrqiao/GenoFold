@@ -1,11 +1,12 @@
 import math
 import numpy as np
+import os
 import scipy.stats
 
 start_base = 21
 end_base = 28
-km_start = 4
-km_end = 19
+km_start = 10
+km_end = 11
 k_pre = 1e11
 km_interval = 1
 
@@ -149,6 +150,11 @@ def bootstrap_correlation(x, y, fcn, n=1000):
     R = np.zeros(n)
     if len(x) <= 10:
         return float('NaN'), float('NaN'), 1
+    '''
+    else:
+        R, p = fcn(x, y, pval=True)
+        return R, 0, p
+    '''
     for i in range(n):
         s = [z[np.random.randint(len(z))] for j in range(len(z))]
         # s = z
@@ -158,10 +164,10 @@ def bootstrap_correlation(x, y, fcn, n=1000):
 
 
 if __name__ == '__main__':
-
+    plt.style.use('seaborn')
     pBAD_upstream = 'ATACCCGTTTTTTGGGCTAACAGGAGGAATTACAT'
-    genes = ['adk', 'folA']
-
+    genes = ['folA']
+    colors = np.linspace(0, 1, 34)
     # Load data
     # Define N-term/C-term groups
     Ncterm = 3 * 20
@@ -171,7 +177,8 @@ if __name__ == '__main__':
         trans_rate_es.append(r'log(Transcription rate)=%g' % e_kt)
     trans_rate_es.append('Equilibrium')
     rbs_bind_time_es = []
-    l_rbss = list(np.arange(0, 105, 5))
+    l_interval = 5
+    l_rbss = list(np.arange(0, 200, l_interval))
     for l_rbs in l_rbss: # NOTE: to modify the axes, change here
         rbs_bind_time_es.append(r'Transcript Length=%g' % l_rbs)
     Nterm_data = np.zeros((len(trans_rate_es), len(rbs_bind_time_es)))
@@ -199,8 +206,9 @@ if __name__ == '__main__':
                     elif len(line) > 1 and len(line.split()) > 1:
                         gene, seqname = line.split()[0], line.split()[1]
                         if (gene, seqname) not in sequences:
-                            print("Could not find", gene, seqname)
-                            raise Exception
+                            continue
+                            #print("Could not find", gene, seqname)
+                            #raise Exception
                         data[(gene, seqname)] \
                             = {fields[i]: float(line.split()[i]) if line.split()[i] != 'ND' else np.nan \
                                for i in range(2, len(fields))}
@@ -212,7 +220,7 @@ if __name__ == '__main__':
             for k in sorted(data):
                 if k[1] != 'WT':
                     if sequences[k][:Ncterm] != sequences[(k[0], 'WT')][
-                                                :Ncterm]:  # and sequences[k][Ncterm:] == sequences[(k[0], 'WT')][Ncterm:]:
+                                                :Ncterm] and sequences[k][Ncterm:] == sequences[(k[0], 'WT')][Ncterm:]:
                         groups['mut_nterm'].append(k)
                     elif sequences[k][:Ncterm] == sequences[(k[0], 'WT')][:Ncterm] and \
                             sequences[k][Ncterm:] != sequences[(k[0], 'WT')][Ncterm:]:
@@ -222,17 +230,27 @@ if __name__ == '__main__':
 
             for d in data:
                 # print(d[0] + '_' + d[1] + '/CG5' + '/k' + '%.2g' % k1 + f'/p_unbound/base{start_base}_{end_base}.dat')
-                try:
-                    with open(d[0] + '_' + d[1] + '/CG5_pool50' + '/k' + '%.2g' % k1 + f'/p_unbound/base{start_base}_{end_base}.dat', 'r+') as p_unbound_in:
+
+                if os.path.isfile(d[0] + '_' + d[1] + '/CG5_pool50_backup' + '/k' + '%.2g' % k1 + f'/p_unbound/base{start_base}_{end_base}.dat'):
+                    with open(d[0] + '_' + d[
+                        1] + '/CG5_pool50_backup' + '/k' + '%.2g' % k1 + f'/p_unbound/base{start_base}_{end_base}.dat',
+                              'r+') as p_unbound_in:
                         mutant_pub_data = {}
                         for line in p_unbound_in:
                             length, pub = map(float, line.split())
                             if int(e_length) == length:
                                 # mutant_pub_data[length] = pub
                                 data[d]['punbound'] = pub
-                except:
-                    # print(f'no {d}')
-                    continue
+                '''
+                elif os.path.isfile(d[0] + '_' + d[1] + '/CG5_pool40' + '/k' + '%.2g' % k1 + f'/p_unbound/base{start_base}_{end_base}.dat'):
+                    with open(d[0] + '_' + d[1] + '/CG5_pool40' + '/k' + '%.2g' % k1 + f'/p_unbound/base{start_base}_{end_base}.dat', 'r+') as p_unbound_in:
+                        mutant_pub_data = {}
+                        for line in p_unbound_in:
+                            length, pub = map(float, line.split())
+                            if int(e_length) == length:
+                                # mutant_pub_data[length] = pub
+                                data[d]['punbound'] = pub
+                '''
 
             # Calculate correlations
             x_all, y_all = [], []
@@ -252,16 +270,46 @@ if __name__ == '__main__':
             print("all %d %6.3f %6.3f %g" % (len(y), R_mean, R_std, p))
             '''
             x, y = [], []
+
             for d in sorted(groups['mut_nterm']):
                 wt_d = (d[0], 'WT')
                 if 'punbound' in data[d] and 'punbound' in data[wt_d] and data[d]['rel_mrna_abundance'] > 0:
-                    x.append(math.log(data[d]['punbound']) - math.log(data[wt_d]['punbound']))
-                    y.append(math.log(data[d]['rel_mrna_abundance']))
+                    if data[d]['punbound'] == 0 or data[wt_d]['punbound'] == 0:
+                        x.append(data[d]['punbound'] - data[wt_d]['punbound'])
+                        y.append(math.log(data[d]['rel_mrna_abundance']))
+                    else:
+                        x.append(data[d]['punbound'] - data[wt_d]['punbound'])
+                        y.append(math.log(data[d]['rel_mrna_abundance']))
+
+            for d in sorted(groups['mut_ncterm']):
+                wt_d = (d[0], 'WT')
+                if 'punbound' in data[d] and 'punbound' in data[wt_d] and data[d]['rel_mrna_abundance'] > 0:
+                    if data[d]['punbound'] == 0 or data[wt_d]['punbound'] == 0:
+                        x.append(data[d]['punbound'] - data[wt_d]['punbound'])
+                        y.append(math.log(data[d]['rel_mrna_abundance']))
+                    else:
+                        x.append(data[d]['punbound'] - data[wt_d]['punbound'])
+                        y.append(math.log(data[d]['rel_mrna_abundance']))
+
+            for d in sorted(groups['mut_cterm']):
+                wt_d = (d[0], 'WT')
+                if 'punbound' in data[d] and 'punbound' in data[wt_d] and data[d]['rel_mrna_abundance'] > 0:
+                    if data[d]['punbound'] == 0 or data[wt_d]['punbound'] == 0:
+                        x.append(data[d]['punbound'] - data[wt_d]['punbound'])
+                        y.append(math.log(data[d]['rel_mrna_abundance']))
+                    else:
+                        x.append(data[d]['punbound'] - data[wt_d]['punbound'])
+                        y.append(math.log(data[d]['rel_mrna_abundance']))
+
             x_all += x
             y_all += y
             R_mean, R_std, p = bootstrap_correlation(x, y, get_pearsonr)
+            #plt.title('log(k_T) = '+str(math.log10(k_T))+' Transcript length = '+str(e_length))
+            #plt.xlim(-0.75,0.75)
+            #plt.scatter(x, y, c=colors, s=150, cmap='jet', alpha=0.5)
+            #plt.show()
             print("%s %d %6.3f %6.3f %g" % (d, len(y), R_mean, R_std, p))
-            Nterm_data[int((e_k-km_start)/km_interval)][int(e_length/5)] = R_mean  # NOTE: Change here
+            Nterm_data[int((e_k-km_start)/km_interval)][int(e_length/l_interval)] = R_mean  # NOTE: Change here
 
     for e_length in l_rbss:
         # rbs_time = 1 * 10 ** (e_time)
@@ -282,8 +330,9 @@ if __name__ == '__main__':
                 elif len(line) > 1 and len(line.split()) > 1:
                     gene, seqname = line.split()[0], line.split()[1]
                     if (gene, seqname) not in sequences:
-                        print("Could not find", gene, seqname)
-                        raise Exception
+                        continue
+                        #print("Could not find", gene, seqname)
+                        #raise Exception
                     data[(gene, seqname)] \
                         = {fields[i]: float(line.split()[i]) if line.split()[i] != 'ND' else np.nan \
                            for i in range(2, len(fields))}
@@ -295,7 +344,7 @@ if __name__ == '__main__':
         for k in sorted(data):
             if k[1] != 'WT':
                 if sequences[k][:Ncterm] != sequences[(k[0], 'WT')][
-                                            :Ncterm]:  # and sequences[k][Ncterm:] == sequences[(k[0], 'WT')][Ncterm:]:
+                                            :Ncterm] and sequences[k][Ncterm:] == sequences[(k[0], 'WT')][Ncterm:]:
                     groups['mut_nterm'].append(k)
                 elif sequences[k][:Ncterm] == sequences[(k[0], 'WT')][:Ncterm] and \
                         sequences[k][Ncterm:] != sequences[(k[0], 'WT')][Ncterm:]:
@@ -307,7 +356,7 @@ if __name__ == '__main__':
             # print(d[0] + '_' + d[1] + '/CG5' + '/k' + '%.2g' % k1 + f'/p_unbound/base{start_base}_{end_base}.dat')
             try:
                 with open(d[0] + '_' + d[
-                    1] + '/CG5_pool50' + '/equilibrium' + f'/p_unbound/base{start_base}_{end_base}.dat',
+                    1] + '/CG5_pool50_backup' + '/equilibrium' + f'/p_unbound/base{start_base}_{end_base}.dat',
                           'r+') as p_unbound_in:
                     mutant_pub_data = {}
                     for line in p_unbound_in:
@@ -337,20 +386,49 @@ if __name__ == '__main__':
         print("all %d %6.3f %6.3f %g" % (len(y), R_mean, R_std, p))
         '''
         x, y = [], []
+
         for d in sorted(groups['mut_nterm']):
             wt_d = (d[0], 'WT')
             if 'punbound' in data[d] and 'punbound' in data[wt_d] and data[d]['rel_mrna_abundance'] > 0:
-                x.append(math.log(data[d]['punbound']) - math.log(data[wt_d]['punbound']))
-                y.append(math.log(data[d]['rel_mrna_abundance']))
+                if data[d]['punbound'] == 0 or data[wt_d]['punbound'] == 0:
+                    x.append(data[d]['punbound'] - data[wt_d]['punbound'])
+                    y.append(math.log(data[d]['rel_mrna_abundance']))
+                else:
+                    x.append(data[d]['punbound'] - data[wt_d]['punbound'])
+                    y.append(math.log(data[d]['rel_mrna_abundance']))
+
+        for d in sorted(groups['mut_ncterm']):
+            wt_d = (d[0], 'WT')
+            if 'punbound' in data[d] and 'punbound' in data[wt_d] and data[d]['rel_mrna_abundance'] > 0:
+                if data[d]['punbound'] == 0 or data[wt_d]['punbound'] == 0:
+                    x.append(data[d]['punbound'] - data[wt_d]['punbound'])
+                    y.append(math.log(data[d]['rel_mrna_abundance']))
+                else:
+                    x.append(data[d]['punbound'] - data[wt_d]['punbound'])
+                    y.append(math.log(data[d]['rel_mrna_abundance']))
+
+        for d in sorted(groups['mut_cterm']):
+            wt_d = (d[0], 'WT')
+            if 'punbound' in data[d] and 'punbound' in data[wt_d] and data[d]['rel_mrna_abundance'] > 0:
+                if data[d]['punbound'] == 0 or data[wt_d]['punbound'] == 0:
+                    x.append(data[d]['punbound'] - data[wt_d]['punbound'])
+                    y.append(math.log(data[d]['rel_mrna_abundance']))
+                else:
+                    x.append(data[d]['punbound'] - data[wt_d]['punbound'])
+                    y.append(math.log(data[d]['rel_mrna_abundance']))
+
         x_all += x
         y_all += y
         R_mean, R_std, p = bootstrap_correlation(x, y, get_pearsonr)
+        plt.title('Equilibrium' + ' Transcript length = ' + str(e_length))
+        plt.xlim(-0.75, 0.75)
+        plt.scatter(x, y, c=colors, s=150, cmap='jet', alpha=0.5)
+        plt.show()
         print("%s %d %6.3f %6.3f %g" % (d, len(y), R_mean, R_std, p))
-        Nterm_data[-1][int(e_length / 5)] = R_mean  # NOTE: Change here
+        Nterm_data[-1][int(e_length/l_interval)] = R_mean  # NOTE: Change here
 
-    plt.style.use('seaborn')
     plt.rcParams["axes.grid"] = False
-    fig = plt.figure(figsize=(12, 9))
+    fig = plt.figure(figsize=(24, 9))
     # colors = [plt.cm.jet(lt) for lt in range(0, 8)]
     fig.add_axes()
     ax = fig.add_subplot(111)
@@ -378,4 +456,4 @@ if __name__ == '__main__':
     '''
     ax.set_title("mRNA - "+r"p_unbound"+"(effective RBS binding length) correlation")
     fig.tight_layout()
-    fig.savefig('Analysis/mRNA-p_unbound(effective RBS binding length)correlation_SD_090918.png')
+    # fig.savefig('Analysis/mRNA-p_unbound(transcript length)correlation_folA_n+nc+cterm_SD_5-200_091118.png')

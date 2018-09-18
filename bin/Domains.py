@@ -153,7 +153,7 @@ def Propagate_sp(M, p, dt, ddt=1):
     # E = np.real(np.dot(np.dot(U, np.diag(R)), Uinv))
     for i in range(len(times)):
         p_temp = np.dot(expm(ddt*M), p)
-        p_norm = np.linalg.norm(p_temp)
+        p_norm = np.linalg.norm(p_temp, 1)
         p = p_temp/p_norm
         # A = mp.expm(M.T*times[i], method='pade')*p
         intermediate_populations.append(p)

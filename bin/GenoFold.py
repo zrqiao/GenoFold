@@ -71,7 +71,7 @@ if __name__ == '__main__':
         active_species_pool.add_species(
             init_foldon, population=Domains.boltzmann_factor(init_foldon.get_G()) / init_pfunc)
     sequence_length = len(full_sequence)
-    sequence_length = 240 # NOTE: only for local contact mutants
+    sequence_length = 400 # NOTE: only for local contact mutants
     current_length = L_init
     active_species_pool.timestamp += dt
     step = 1

@@ -15,6 +15,7 @@ do
     i=$k
     echo -e "Simulating with log(k) = $i"
     sbatch FRtuning_serial.sh $mut $i
+    sleep 1s
 done
 # python bin/GenoFold.py --working-path ./$mut/CG5 --stationary --foldons-path $mut/foldons_ext_CG5.dat --pool-size 25 --CG-length 5 sequences/$mut
 # monitor output (need formatted string)
